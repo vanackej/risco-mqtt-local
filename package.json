@@ -1,0 +1,15 @@
+{
+  "name": "risco-mqtt-home-assistant",
+  "version": "1.0.0",
+  "description": "Node Risco Mqtt for Home Assistant",
+  "main": "risco-mqtt-home-assistant.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alessandro Mancini <dott.alessandro.mancini@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "mqtt": "^3.0.0",
+    "node-risco-client": "^1.0.3"
+  }
+}
