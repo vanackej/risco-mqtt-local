@@ -1,4 +1,19 @@
-## Install
+# risco-mqtt-home-assistant
+
+This project is  highly inspired by [risco-mqtt-bridge](https://github.com/lucacalcaterra/risco-mqtt-bridge) by [Luca Calcaterra](https://github.com/lucacalcaterra) but differ from it because use Risco REST API sniffed from [iRISCO](https://play.google.com/store/apps/details?id=com.homeguard&hl=it) app. 
+
+## Motivations
+
+Sometimes Risco Cloud Web API (that is the basis on which [risco-mqtt-bridge](https://github.com/lucacalcaterra/risco-mqtt-bridge) was developed) does not respond at sensors change state unless you force to update alarm panel change state. So i have decided to change the source of informations about risco alarm panel from Web APIs to REST APIs like from the mobile App.
+
+**risco-mqtt-home-assistant** supports also Home Assistant Auto Discovery.
+
+## Requirements
+* Node.js (currently tested with >=ver. 10.x)
+* Mqtt Server - e.g. Mosquitto, HiveMQ, etc.
+* Home Assistant
+
+## Installation
 
 ```
 npm install --save risco-mqtt-home-assistant
@@ -25,7 +40,7 @@ Create a file config.json in your project directory.
 
 ## Subscribe Topics
 
-risco-mqtt-home-assistant subscribes at startup one topic for every partition in your risco alarm panel configuration.
+**risco-mqtt-home-assistant** subscribes at startup one topic for every partition in your risco alarm panel configuration.
 
 Topics format is `riscopanel/alarm/<partition_id>/set` where **partition_id** is the id of the partition
 
@@ -47,19 +62,12 @@ In addition for every zones, risco-mqtt-home-assistant publishes a topic for eve
 
 ## Home Assistant Auto Discovery
 
-risco-mqtt-home-assistant supports  feature [mqtt auto discovery](https://www.home-assistant.io/docs/mqtt/discovery/) feature.
+risco-mqtt-home-assistant supports [mqtt auto discovery](https://www.home-assistant.io/docs/mqtt/discovery/) feature.
 
 Default `<discovery_prefix>` is **homeassistant**. You can change it overwriting in **home-assistant-discovery-prefix** config.
 
 ## Usage
 
-This is the simplest usage you can do with risco-mqtt-home-assistant
+To start risco-mqtt-home-assistant you can simply type:
 
-### Start risco-mqtt-home-assistant client
-
-```
-const riscoMqttHassio = require('risco-mqtt-home-assistant')
-const config = require('./config.json')
-
-riscoMqttHassio(config)
-```
+`npx risco-mqtt-home-assistant`

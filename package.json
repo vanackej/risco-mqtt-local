@@ -1,8 +1,8 @@
 {
   "name": "risco-mqtt-home-assistant",
-  "version": "1.0.1",
+  "version": "1.0.6",
   "description": "Node Risco Mqtt for Home Assistant",
-  "main": "risco-mqtt-home-assistant.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,5 +11,8 @@
   "dependencies": {
     "mqtt": "^3.0.0",
     "node-risco-client": "^1.0.3"
+  },
+  "bin": {
+    "risco-mqtt-home-assistant": "./bin/risco-mqtt-home-assistant.js"
   }
 }
