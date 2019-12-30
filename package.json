@@ -1,11 +1,22 @@
 {
   "name": "risco-mqtt-home-assistant",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Node Risco Mqtt for Home Assistant",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mancioshell/risco-mqtt-home-assistant"
+  },
+  "keywords": [
+    "risco",
+    "alarm",
+    "home-assistant",
+    "mqtt",
+    "iRISCO"
+  ],
   "author": "Alessandro Mancini <dott.alessandro.mancini@gmail.com>",
   "license": "ISC",
   "dependencies": {
