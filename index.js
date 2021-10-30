@@ -1,128 +1,162 @@
 const mqtt = require('mqtt')
-const nodeRiscoClient = require('node-risco-client')
+const RiscoTCPPanel = require('risco-lan-bridge');
+const RiscoPanel = RiscoTCPPanel.RiscoPanel;
 
 const ALARM_TOPIC = "riscopanel/alarm"
 const ALARM_TOPIC_REGEX = /^riscopanel\/alarm\/([0-9])*\/set$/m
 const RISCO_NODE_ID = 'risco-alarm-panel'
 
-module.exports = (config) => {
+module.exports = (config, /** @type {RiscoPanel} */ panel) => {
     let {
-        username,
-        password,
-        pin,
-        "language-id": languageId,
         "mqtt-url": mqttURL,
         "mqtt-username": mqttUsername,
         "mqtt-password": mqttPassword,
         "home-assistant-discovery-prefix": HASSIO_DISCOVERY_PREFIX_TOPIC = 'homeassistant',
-        "interval-polling": INTERVAL_POLLING = 5000
+        "zone-label-prefix": zoneLabelPrefix = ''
     } = config
 
-    if (!username) throw new Error('username options is required')
-    if (!password) throw new Error('password options is required')
-    if (!pin) throw new Error('pin options is required')
-    if (!languageId) throw new Error('languageId options is required')
     if (!mqttURL) throw new Error('mqttURL options is required')
 
-    const riscoClient = nodeRiscoClient({ username, password, pin, languageId })
-    const mqttClient = mqtt.connect(mqttURL, { username: mqttUsername, password: mqttPassword })
+    const mqttClient = mqtt.connect(mqttURL, {
+            username: mqttUsername,
+            password: mqttPassword,
+            will: {
+                topic: `${ALARM_TOPIC}/status`,
+                payload: 'offline',
+                qos: 1,
+                willDelayInterval: 30,
+                retain: true
+            }
+        }
+    )
 
-    const alarmPayload = { 1: 'disarmed', 2: 'armed_home', 3: 'armed_away' }
-    const sensorPayload = { 0: 'idle', 1: 'triggered' }
+    const alarmPayload = (/** @type {Partition} */ partition) => {
+        if (!partition.Arm && ! partition.HomeStay) {
+            return 'disarmed'
+        } else {
+            if (partition.HomeStay) {
+                return 'armed_home'
+            } else {
+                return 'armed_away'
+            }
+        }
+    }
 
     const disarm = async partitionId => {
-        await riscoClient.disarm();
-        mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/status`, 'disarmed')
+        await panel.DisarmPart(partitionId);
         return Promise.resolve('disarmed')
     }
 
     const partiallyArm = async partitionId => {
-        await riscoClient.partiallyArm();
-        mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/status`, 'armed_home')
+        await panel.ArmPart(partitionId, 1);
         return Promise.resolve('armed_home')
     }
 
     const arm = async partitionId => {
-        await riscoClient.arm();
-        mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/status`, 'armed_away')
-        return Promise.resolve('armed_home')
+        await panel.ArmPart(partitionId, 0);
+        return Promise.resolve('armed_away')
     }
 
-    const alarmAction = { 'DISARM': disarm, 'ARM_HOME': partiallyArm, 'ARM_NIGHT': partiallyArm, 'ARM_AWAY': arm }
+    const alarmAction = {'DISARM': disarm, 'ARM_HOME': partiallyArm, 'ARM_NIGHT': partiallyArm, 'ARM_AWAY': arm}
 
     const changeAlarmStatus = async (code, partitionId) => {
         return alarmAction[code].call(this, partitionId)
     }
 
-    const subscribeAlarmStateChange = (partitions) => {
-        for (const partition of partitions) {
-            console.log(`subscribe on ${ALARM_TOPIC}/${partition.id}/set topic`)
-            mqttClient.subscribe(`${ALARM_TOPIC}/${partition.id}/set`)
-        }
-        setInterval(retrieveAlarmStatus, INTERVAL_POLLING);
+    const subscribeAlarmStateChange = (partition) => {
+        console.log(`subscribe on ${ALARM_TOPIC}/${partition.Id}/set topic`)
+        mqttClient.subscribe(`${ALARM_TOPIC}/${partition.Id}/set`)
     }
 
-    const publishAlarmStateChange = (partitions) => {
-        for (const partition of partitions) {
-            let state = partition.armedState
-            mqttClient.publish(`${ALARM_TOPIC}/${partition.id}/status`, alarmPayload[state])
-            console.log(`published alarm status ${alarmPayload[state]} on partition ${partition.id}`)
-        }
+    const publishPartitionStateChanged = (partition) => {
+        mqttClient.publish(`${ALARM_TOPIC}/${partition.Id}/status`, alarmPayload(partition))
+        console.log(`published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`)
     }
 
-    const publishSensorsStateChange = (zones) => {
-        for (const zone of zones) {
-            const partitionId = zone.part - 1
-            mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.zoneID}`, JSON.stringify(zone))
-            mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.zoneID}/status`, sensorPayload[zone.status])
-        }
+    const publishSensorsStateChange = (zone) => {
+        const partitionId = zone.Parts[0]
+        mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}`, JSON.stringify({
+            label: zone.Label,
+            type: zone.Type,
+            typeStr: zone.TypeStr,
+            tech: zone.ZTech,
+            tamper: zone.Tamper
+        }))
+        mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}/status`, zone.Open ? '1' : '0')
     }
 
-    const autoDiscovery = (partitions, zones) => {
-        for (const partition of partitions) {
+    function activePartitions(partitions) {
+        return partitions.filter(p => p.Exist)
+    }
+
+    function activeZones(zones) {
+        return zones.filter(z => z.ZTech !== 'None' && !z.NotUsed && z.Type !== '0')
+    }
+
+    const autoDiscovery = () => {
+        for (const partition of activePartitions(panel.Partitions)) {
             const payload = {
-                'name': `risco-alarm-panel-${partition.id}`,
-                'state_topic': `${ALARM_TOPIC}/${partition.id}/status`,
-                'command_topic': `${ALARM_TOPIC}/${partition.id}/set`
+                'name': `risco-alarm-panel-${partition.Id}`,
+                'state_topic': `${ALARM_TOPIC}/${partition.Id}/status`,
+                availability: {
+                    topic: `${ALARM_TOPIC}/status`
+                },
+                'command_topic': `${ALARM_TOPIC}/${partition.Id}/set`
             }
-            mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/alarm_control_panel/${RISCO_NODE_ID}/${partition.id}/config`, JSON.stringify(payload))
-            console.log(`published alarm_control_panel for homeassistant autodiscovery on partition ${partition.id}`)
+            mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/alarm_control_panel/${RISCO_NODE_ID}/${partition.Id}/config`, JSON.stringify(payload))
+            console.log(`published alarm_control_panel for homeassistant autodiscovery on partition ${partition.Id}`)
         }
 
-        for (const zone of zones) {
-            const partitionId = zone.part - 1
-            const nodeId = zone.zoneName.replace(' ', '-')
+        for (const zone of activeZones(panel.Zones)) {
+            const partitionId = zone.Parts[0]
+            const nodeId = zone.Label.replace(/ /g, '-')
             const payload = {
-                'name': `${zone.zoneName}`,
-                'payload_on': 'triggered',
-                'payload_off': 'idle',
-                'state_topic': `${ALARM_TOPIC}/${partitionId}/sensor/${zone.zoneID}/status`,
-                'json_attributes_topic': `${ALARM_TOPIC}/${partitionId}/sensor/${zone.zoneID}`
-            }            
-            mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/binary_sensor/${nodeId}/${zone.zoneID}/config`, JSON.stringify(payload))
+                'name': `${zoneLabelPrefix}${zone.Label}`,
+                availability: {
+                    topic: `${ALARM_TOPIC}/status`
+                },
+                'device_class': 'motion',
+                'payload_on': '1',
+                'payload_off': '0',
+                'state_topic': `${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}/status`,
+                'json_attributes_topic': `${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}`
+            }
+            mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/binary_sensor/${nodeId}/${zone.Id}/config`, JSON.stringify(payload))
+            console.log(`published binary_sensor for homeassistant autodiscovery : ${payload.name}`)
         }
-        console.log(`published ${zones.length} binary_sensor for homeassistant autodiscovery`)
-    }
-
-    const retrieveAlarmStatus = () => {
-        Promise.all([riscoClient.getPartitions(), riscoClient.getZones()]).then(([partitions, zones]) => {
-            publishAlarmStateChange(partitions)
-            publishSensorsStateChange(zones)
-        }).catch(err => {
-            console.log(`error during retrieve status fo partitions and zones`)
-            console.log(err)
-        })
     }
 
     mqttClient.on('connect', () => {
         console.log(`connected on mqtt server: ${mqttURL}`)
-        Promise.all([riscoClient.getPartitions(), riscoClient.getZones()]).then(([partitions, zones]) => {
-            subscribeAlarmStateChange(partitions)
-            autoDiscovery(partitions, zones)
-        }).catch(err => {
-            console.log(`error during get partitions and zones on connect`)
-            console.log(err)
-            process.exit(1)
+
+        panel.on('SystemInitComplete', () => {
+
+            autoDiscovery();
+
+            for (const partition of activePartitions(panel.Partitions)) {
+                subscribeAlarmStateChange(partition)
+            }
+
+            mqttClient.publish(`${ALARM_TOPIC}/status`, 'online', {
+                qos: 1,
+                retain: true
+            });
+
+            for (const partition of activePartitions(panel.Partitions)) {
+                publishPartitionStateChanged(partition);
+            }
+
+            panel.Partitions.on('PStatusChanged', (Id, EventStr) => {
+                if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed'].includes(EventStr)) {
+                    publishPartitionStateChanged(panel.Partitions.ById(Id));
+                }
+            });
+
+            panel.Zones.on('ZStatusChanged', (Id, EventStr) => {
+                if (['Closed', 'Open'].includes(EventStr)) {
+                    publishSensorsStateChange(panel.Zones.ById(Id))
+                }
+            });
         })
     })
 

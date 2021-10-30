@@ -20,10 +20,8 @@
   "author": "Alessandro Mancini <dott.alessandro.mancini@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "mqtt": "^3.0.0",
-    "node-risco-client": "^1.0.6"
+    "mqtt": "^4.2.8",
+    "risco-lan-bridge": "^0.10.3"
   },
-  "bin": {
-    "risco-mqtt-home-assistant": "./bin/risco-mqtt-home-assistant.js"
-  }
+  "bin": "./bin/risco-mqtt-home-assistant.js"
 }
