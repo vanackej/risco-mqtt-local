@@ -1,5 +1,5 @@
 {
-  "name": "risco-mqtt-local",
+  "name": "@vanackej/risco-mqtt-local",
   "version": "0.1.0",
   "description": "Node Risco Mqtt using local panel API",
   "main": "index.js",
