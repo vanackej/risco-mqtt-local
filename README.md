@@ -89,4 +89,4 @@ To start risco-mqtt-local you can simply type:
 
 ## Credits
 
-Thanks to [TJForc](https://github.com/TJForc) and [Alessandro Mancini](https://github.com/mancioshell) for their initial work
+Thanks to [TJForc](https://github.com/TJForc) for the local communication library and [Alessandro Mancini](https://github.com/mancioshell) for his initial work
