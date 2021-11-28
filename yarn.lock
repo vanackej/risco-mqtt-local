@@ -5,6 +5,13 @@ __metadata:
   version: 4
   cacheKey: 8
 
+"@vanackej/risco-lan-bridge@npm:^0.10.5":
+  version: 0.10.5
+  resolution: "@vanackej/risco-lan-bridge@npm:0.10.5"
+  checksum: 82362620e7a788733548af3d3413df4f701dd6de7e22254796ca49072664f1b6a36be66bbb6c4318cd40e494d3d1ec1ffc6488a41b06eefbf189fff3f654eb80
+  languageName: node
+  linkType: hard
+
 "balanced-match@npm:^1.0.0":
   version: 1.0.2
   resolution: "balanced-match@npm:1.0.2"
@@ -292,19 +299,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"risco-lan-bridge@npm:^0.10.3":
-  version: 0.10.3
-  resolution: "risco-lan-bridge@npm:0.10.3"
-  checksum: fdd4eb272e411a248c37bc85ec93373230f08d4287e0a9c3296da5b8b2be4508ebe4ddc7784ddd7510677a004dc7db874f28bfcb9ec952a7ce0372577aeb9e86
-  languageName: node
-  linkType: hard
-
 "risco-mqtt-home-assistant@workspace:.":
   version: 0.0.0-use.local
   resolution: "risco-mqtt-home-assistant@workspace:."
   dependencies:
+    "@vanackej/risco-lan-bridge": ^0.10.5
     mqtt: ^4.2.8
-    risco-lan-bridge: ^0.10.3
   bin:
     risco-mqtt-home-assistant: ./bin/risco-mqtt-home-assistant.js
   languageName: unknown

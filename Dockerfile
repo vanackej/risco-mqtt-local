@@ -1,7 +1,10 @@
-FROM node:latest
+FROM node:lts-alpine
 
 WORKDIR /usr/src/app
 
-RUN npm install risco-mqtt-home-assistant
+COPY package.json ./
+COPY yarn.lock ./
+RUN yarn install
+COPY . .
 
-CMD [ "npx", "risco-mqtt-home-assistant" ]
+CMD [ "node", "./bin/risco-mqtt-local.js" ]

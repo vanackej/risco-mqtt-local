@@ -14,6 +14,6 @@ try {
         process.exit(1)
     }
 } catch (e) {
-    console.log('file config.json does not in json format')
+    console.log('file config.json is not in json format')
     process.exit(1)
 }

@@ -1,14 +1,14 @@
 {
-  "name": "risco-mqtt-home-assistant",
-  "version": "1.1.0",
-  "description": "Node Risco Mqtt for Home Assistant",
+  "name": "risco-mqtt-local",
+  "version": "0.1.0",
+  "description": "Node Risco Mqtt using local panel API",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\""
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mancioshell/risco-mqtt-home-assistant"
+    "url": "https://github.com/vanackej/risco-mqtt-local"
   },
   "keywords": [
     "risco",
@@ -17,11 +17,11 @@
     "mqtt",
     "iRISCO"
   ],
-  "author": "Alessandro Mancini <dott.alessandro.mancini@gmail.com>",
+  "author": "Johann Vanackere <johann.vanackere@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "mqtt": "^4.2.8",
-    "risco-lan-bridge": "^0.10.3"
+    "@vanackej/risco-lan-bridge": "^0.10.5",
+    "mqtt": "^4.2.8"
   },
-  "bin": "./bin/risco-mqtt-home-assistant.js"
+  "bin": "./bin/risco-mqtt-local.js"
 }
