@@ -75,6 +75,8 @@ Default `<discovery_prefix>` is **homeassistant**. You can change it by overwrit
 
 ## Usage
 
+First, create the `config.json` file. 
+
 ### Using Node
 
 To start risco-mqtt-local you can simply type:
