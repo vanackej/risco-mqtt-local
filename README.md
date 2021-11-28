@@ -79,7 +79,7 @@ Default `<discovery_prefix>` is **homeassistant**. You can change it by overwrit
 
 To start risco-mqtt-local you can simply type:
 
-`npx risco-mqtt-local`
+`npx @vanackej/risco-mqtt-local`
 
 ### Using Docker image
 
