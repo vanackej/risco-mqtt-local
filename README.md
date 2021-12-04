@@ -1,3 +1,8 @@
+[![license badge](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/vanackej/risco-mqtt-local/blob/main/LICENSE)
+[![Package Version](https://shields.io/npm/v/@vanackej/risco-mqtt-local/latest)](https://www.npmjs.com/package/@vanackej/risco-mqtt-local)
+[![Node Version](https://shields.io/node/v/@vanackej/risco-mqtt-local)](https://www.npmjs.com/package/@vanackej/risco-mqtt-local)
+[![Maintenance badge](https://shields.io/badge/maintenance-yes-green.svg)](https://www.npmjs.com/package/@vanackej/risco-mqtt-local)
+
 # risco-mqtt-local
 
 This project is a fork of [risco-mqtt-home-assistant](https://github.com/mancioshell/risco-mqtt-home-assistant) by [Alessandro Mancini](https://github.com/mancioshell), using local APIs instead of RiscoCloud APIs.
