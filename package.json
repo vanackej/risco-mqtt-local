@@ -1,6 +1,6 @@
 {
   "name": "@vanackej/risco-mqtt-local",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Node Risco Mqtt using local panel API",
   "main": "index.js",
   "scripts": {
