@@ -1,50 +1,37 @@
 const mqtt = require('mqtt')
 const {Log_Level} = require("@vanackej/risco-lan-bridge/lib/constants");
+const { createLogger, format, transports } = require('winston');
+const { combine, timestamp, printf } = format;
 const RiscoPanel = require('@vanackej/risco-lan-bridge').RiscoPanel;
 
 const ALARM_TOPIC = "riscopanel/alarm"
 const ALARM_TOPIC_REGEX = /^riscopanel\/alarm\/([0-9])*\/set$/m
 const RISCO_NODE_ID = 'risco-alarm-panel'
 
-function levelOf(logLevel) {
-    switch (logLevel) {
-        case Log_Level.ERROR :
-            return 4;
-        case Log_Level.WARN :
-            return 3;
-        case Log_Level.INFO :
-            return 2;
-        case Log_Level.VERBOSE :
-            return 1;
-        case Log_Level.DEBUG :
-            return 0;
-    }
-}
-
 module.exports = (config) => {
-    const minLogLevel = levelOf(config.log || Log_Level.INFO);
-    const logger = (log_channel, log_lvl, log_data) => {
-        if (levelOf(log_lvl) >= minLogLevel) {
-            switch (log_lvl) {
-                case Log_Level.ERROR :
-                    log_channel.error(log_data);
-                    break;
-                case Log_Level.WARN :
-                    log_channel.warn(log_data);
-                    break;
-                case Log_Level.INFO :
-                    log_channel.info(log_data);
-                    break;
-                case Log_Level.VERBOSE :
-                    log_channel.info(log_data);
-                    break;
-                case Log_Level.DEBUG :
-                    log_channel.debug(log_data);
-                    break;
-            }
-        }
+    const logLevel = config.log || Log_Level.INFO;
+
+    const winstonLogger = createLogger({
+        format: combine(
+            timestamp({
+                format: () => new Date().toLocaleString()
+            }),
+            printf(({ level, message, label, timestamp }) => {
+                return `${timestamp} [${level}] ${message}`;
+            })
+        ),
+        level: logLevel,
+        transports: [
+            new transports.Console()
+        ]
+    });
+
+    config.panel.logger = (log_channel, log_lvl, log_data) => {
+        winstonLogger.log({
+            level: log_lvl,
+            message: log_data
+        })
     };
-    config.panel.logger = logger;
 
     let {
         "url": mqttURL,
@@ -79,7 +66,7 @@ module.exports = (config) => {
     }
 
     function subscribeAlarmStateChange(partition) {
-        console.log(`Subscribe on ${ALARM_TOPIC}/${partition.Id}/set topic`)
+        winstonLogger.info(`Subscribe on ${ALARM_TOPIC}/${partition.Id}/set topic`)
         mqttClient.subscribe(`${ALARM_TOPIC}/${partition.Id}/set`)
     }
 
@@ -99,7 +86,7 @@ module.exports = (config) => {
 
     function publishPartitionStateChanged(partition) {
         mqttClient.publish(`${ALARM_TOPIC}/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true})
-        console.log(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`)
+        winstonLogger.info(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`)
     }
 
     function publishSensorsStateChange(zone) {
@@ -109,7 +96,7 @@ module.exports = (config) => {
         }), { qos: 1, retain: true})
         let zoneStatus = zone.Open ? '1' : '0';
         mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}/status`, zoneStatus)
-        console.log(`[Panel => MQTT] Published sensor status ${zoneStatus} on zone ${zone.Label}`)
+        winstonLogger.info(`[Panel => MQTT] Published sensor status ${zoneStatus} on zone ${zone.Label}`)
     }
 
     function activePartitions(partitions) {
@@ -124,7 +111,7 @@ module.exports = (config) => {
         mqttClient.publish(`${ALARM_TOPIC}/status`, 'online', {
             qos: 1, retain: true
         });
-        console.debug("[Panel => MQTT] Published alarm online")
+        winstonLogger.debug("[Panel => MQTT] Published alarm online")
     }
 
     function autoDiscovery() {
@@ -141,7 +128,7 @@ module.exports = (config) => {
             mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/alarm_control_panel/${RISCO_NODE_ID}/${partition.Id}/config`, JSON.stringify(payload), {
                 qos: 1, retain: true
             })
-            console.log(`[Panel => MQTT] Published alarm_control_panel for homeassistant autodiscovery on partition ${partition.Id}`)
+            winstonLogger.info(`[Panel => MQTT] Published alarm_control_panel for homeassistant autodiscovery on partition ${partition.Id}`)
         }
 
         for (const zone of activeZones(panel.Zones)) {
@@ -165,17 +152,19 @@ module.exports = (config) => {
                 qos: 1,
                 retain: true
             })
-            console.log(`[Panel => MQTT] Published binary_sensor for homeassistant autodiscovery : ${payload.name}`)
+            winstonLogger.info(`[Panel => MQTT] Published binary_sensor for homeassistant autodiscovery : ${payload.name}`)
         }
     }
 
     mqttClient.on('connect', () => {
-        console.log(`Connected on mqtt server: ${mqttURL}`)
+        winstonLogger.info(`Connected on mqtt server: ${mqttURL}`)
 
         panel.on('SystemInitComplete', () => {
-
+            winstonLogger.info(`Panel init completed`)
+            winstonLogger.info(`Publishing Home Assistant discovery info`)
             autoDiscovery();
 
+            winstonLogger.info(`Subscribing to Home assistant commands topics`)
             for (const partition of activePartitions(panel.Partitions)) {
                 subscribeAlarmStateChange(partition)
             }
@@ -193,6 +182,7 @@ module.exports = (config) => {
                 publishSensorsStateChange(zone);
             }
 
+            winstonLogger.info(`Subscribing to panel partitions and zones events`)
             panel.Partitions.on('PStatusChanged', (Id, EventStr) => {
                 if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy'].includes(EventStr)) {
                     publishPartitionStateChanged(panel.Partitions.ById(Id));
@@ -204,6 +194,7 @@ module.exports = (config) => {
                     publishSensorsStateChange(panel.Zones.ById(Id))
                 }
             });
+            winstonLogger.info(`Initialization completed`)
         })
     })
 
@@ -212,17 +203,17 @@ module.exports = (config) => {
         if ((m = ALARM_TOPIC_REGEX.exec(topic)) !== null) {
             m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (partitionId) => {
                 const command = message.toString()
-                console.info(`[MQTT => Panel] Received change state command ${command} on topic ${topic} in partition ${partitionId}`)
+                winstonLogger.info(`[MQTT => Panel] Received change state command ${command} on topic ${topic} in partition ${partitionId}`)
                 try {
                     const success = await changeAlarmStatus(command, partitionId)
                     if (success) {
-                        console.info(`[MQTT => Panel] ${command} command sent on partition ${partitionId}`)
+                        winstonLogger.info(`[MQTT => Panel] ${command} command sent on partition ${partitionId}`)
                     } else {
-                        console.error(`[MQTT => Panel] Failed to send ${command} command on partition ${partitionId}`)
+                        winstonLogger.error(`[MQTT => Panel] Failed to send ${command} command on partition ${partitionId}`)
                     }
                 } catch (err) {
-                    console.error(`[MQTT => Panel] Error during state change command ${command} from topic ${topic} on partition ${partitionId}`)
-                    console.error(err)
+                    winstonLogger.error(`[MQTT => Panel] Error during state change command ${command} from topic ${topic} on partition ${partitionId}`)
+                    winstonLogger.error(err)
                 }
             });
         }

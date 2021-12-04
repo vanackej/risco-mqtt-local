@@ -20,8 +20,9 @@
   "author": "Johann Vanackere <johann.vanackere@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@vanackej/risco-lan-bridge": "^0.10.5",
-    "mqtt": "^4.2.8"
+    "@vanackej/risco-lan-bridge": "^0.10.6",
+    "mqtt": "^4.2.8",
+    "winston": "^3.3.3"
   },
   "bin": "./bin/risco-mqtt-local.js"
 }
