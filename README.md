@@ -23,7 +23,7 @@ Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communi
 ## Installation
 
 ```
-npm install risco-mqtt-local
+npm install @vanackej/risco-mqtt-local
 ```
 
 ## Configuration
@@ -49,6 +49,8 @@ Create a file config.json in your project directory.
 }
 
 ```
+
+The panel full configuration options are described here : https://github.com/vanackej/risco-lan-bridge#configuration
 
 ## Subscribe Topics
 
