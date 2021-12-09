@@ -33,6 +33,12 @@ Create a file config.json in your project directory.
 ```
 {
   "log": "debug", // Optional, default to "info"
+  "zones": {
+    "off_delay": 30 // Optional auto off configuration for detectors. -1 to disable (default value)
+    "GARAGE": { // Optional Per-zone overrides for zone. Zones names are logged at startup after initial discovery 
+      "off_delay": -1 // Disable off_delay for this zone 
+    }
+  },
   "panel": {
     "Panel_IP": "YOUR_PANEL_IP",
     "Panel_Port": YOUR_PANEL_PORT, // default is 1000

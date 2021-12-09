@@ -13,6 +13,7 @@ module.exports = (config) => {
     let panelReady = false;
 
     const logLevel = config.log || Log_Level.INFO;
+    const zones_off_delay = (config.zones && config.zones.off_delay) || -1;
 
     const winstonLogger = createLogger({
         format: combine(
@@ -157,31 +158,36 @@ module.exports = (config) => {
             mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/alarm_control_panel/${RISCO_NODE_ID}/${partition.Id}/config`, JSON.stringify(payload), {
                 qos: 1, retain: true
             })
-            winstonLogger.info(`[Panel => MQTT] Published alarm_control_panel for homeassistant autodiscovery on partition ${partition.Id}`)
+            winstonLogger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA on partition ${partition.Id}`)
         }
 
         for (const zone of activeZones(panel.Zones)) {
             const partitionId = zone.Parts[0]
             const nodeId = zone.Label.replace(/ /g, '-')
             const payload = {
-                'name': `${zoneLabelPrefix}${zone.Label}`,
+                name: `${zoneLabelPrefix}${zone.Label}`,
                 availability: {
                     topic: `${ALARM_TOPIC}/status`
                 },
                 unique_id: `risco-alarm-panel-${partitionId}-zone-${zone.Id}`,
-                'device_class': 'motion',
-                'payload_on': '1',
-                'payload_off': '0',
-                off_delay: 30, // If the service is stopped with any activated zone, it can remain forever on without this config
+                device_class: 'motion',
+                payload_on: '1',
+                payload_off: '0',
                 qos: 1,
-                'state_topic': `${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}/status`,
-                'json_attributes_topic': `${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}`
+                state_topic: `${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}/status`,
+                json_attributes_topic: `${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}`
             }
+            const zone_off_delay = (config.zones && config.zones[zone.Label] && config.zones[zone.Label].off_delay) || zones_off_delay
+            if (zone_off_delay !== -1) {
+                payload.off_delay = zone_off_delay // If the service is stopped with any activated zone, it can remain forever on without this config
+            }
+
             mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/binary_sensor/${nodeId}/${zone.Id}/config`, JSON.stringify(payload), {
                 qos: 1,
                 retain: true
             })
-            winstonLogger.info(`[Panel => MQTT] Published binary_sensor for homeassistant autodiscovery : ${payload.name}`)
+            winstonLogger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`)
+            winstonLogger.debug(`[Panel => MQTT][Discovery] ${JSON.stringify(payload)}`)
         }
     }
 
