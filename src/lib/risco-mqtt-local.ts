@@ -1,58 +1,109 @@
+import {IClientOptions} from 'mqtt/types/lib/client';
+
+import * as _ from 'lodash';
+
 const mqtt = require('mqtt')
-const {Log_Level} = require("@vanackej/risco-lan-bridge/lib/constants");
-const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, printf } = format;
+const {createLogger, format, transports} = require('winston');
+const {combine, timestamp, printf} = format;
 const RiscoPanel = require('@vanackej/risco-lan-bridge').RiscoPanel;
 
 const ALARM_TOPIC = "riscopanel/alarm"
 const ALARM_TOPIC_REGEX = /^riscopanel\/alarm\/([0-9])*\/set$/m
 const RISCO_NODE_ID = 'risco-alarm-panel'
 
-module.exports = (config) => {
+type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
-    let panelReady = false;
+export interface RiscoMQTTConfig {
+    log?: LogLevel
+    ha_discovery_prefix_topic?: string
+    zones?: {
+        default?: ZoneConfig
+        [label: string]: ZoneConfig
+    }
+    panel: {
+        Panel_IP?: string
+        Panel_Port?: number
+        Panel_Password?: number,
+        Panel_Id?: number,
+        WatchDogInterval?: number,
+        logger?: any
+    },
+    mqtt?: MQTTConfig
+}
 
-    const logLevel = config.log || Log_Level.INFO;
-    const zones_off_delay = (config.zones && config.zones.off_delay) || -1;
+export interface MQTTConfig extends IClientOptions {
+    url: string
+}
 
-    const winstonLogger = createLogger({
+export interface ZoneConfig {
+    off_delay?: number,
+    device_class?: string,
+    name?: string
+    name_prefix?: string
+}
+
+const CONFIG_DEFAULTS: RiscoMQTTConfig = {
+    log: 'info',
+    ha_discovery_prefix_topic: 'homeassistant',
+    panel: {
+    },
+    zones: {
+        default: {
+            off_delay: 0,
+            device_class: 'motion',
+            name_prefix: ''
+        }
+    },
+    mqtt: {
+        url: null,
+        reconnectPeriod: 5000,
+        clientId: 'risco-mqtt',
+        will: {
+            topic: `${ALARM_TOPIC}/status`, payload: 'offline', qos: 1, retain: true, properties: {
+                willDelayInterval: 30
+            }
+        }
+    }
+}
+
+export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
+
+    const config = _.merge(CONFIG_DEFAULTS, userConfig)
+
+    const logger = createLogger({
         format: combine(
             timestamp({
                 format: () => new Date().toLocaleString()
             }),
-            printf(({ level, message, label, timestamp }) => {
+            printf(({level, message, label, timestamp}) => {
                 return `${timestamp} [${level}] ${message}`;
             })
         ),
-        level: logLevel,
+        level: config.log || 'info',
         transports: [
             new transports.Console()
         ]
     });
 
+    logger.debug(`User config:\n${JSON.stringify(userConfig, null, 2)}`)
+    logger.debug(`Merged config:\n${JSON.stringify(config, null, 2)}`)
+
     config.panel.logger = (log_channel, log_lvl, log_data) => {
-        winstonLogger.log({
+        logger.log({
             level: log_lvl,
             message: log_data
         })
     };
 
-    let {
-        "url": mqttURL,
-        "username": mqttUsername,
-        "password": mqttPassword,
-        "reconnectPeriod": reconnectPeriod = 5000,
-        "home-assistant-discovery-prefix": HASSIO_DISCOVERY_PREFIX_TOPIC = 'homeassistant',
-        "zone-label-prefix": zoneLabelPrefix = ''
-    } = config.mqtt
+    let panelReady = false;
 
-    if (!mqttURL) throw new Error('mqttURL options is required')
+    if (!config.mqtt?.url) throw new Error('mqtt url options is required')
 
     const panel = new RiscoPanel(config.panel);
 
     panel.on('SystemInitComplete', () => {
         panelReady = true
-        winstonLogger.info(`Subscribing to panel partitions and zones events`)
+        logger.info(`Subscribing to panel partitions and zones events`)
         panel.Partitions.on('PStatusChanged', (Id, EventStr) => {
             if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy'].includes(EventStr)) {
                 publishPartitionStateChanged(panel.Partitions.ById(Id));
@@ -65,23 +116,13 @@ module.exports = (config) => {
             }
         });
 
-        panel.RiscoComm.on('Clock', (data) => {
+        panel.RiscoComm.on('Clock', () => {
             publishOnline()
         })
     })
 
-    winstonLogger.info(`Connecting to mqtt server: ${mqttURL}`)
-    const mqttClient = mqtt.connect(mqttURL, {
-        reconnectPeriod: reconnectPeriod,
-        username: mqttUsername,
-        password: mqttPassword,
-        clientId: 'risco-mqtt',
-        will: {
-            topic: `${ALARM_TOPIC}/status`, payload: 'offline', qos: 1, retain: true, properties: {
-                willDelayInterval: 30
-            }
-        }
-    })
+    logger.info(`Connecting to mqtt server: ${config.mqtt.url}`)
+    const mqttClient = mqtt.connect(config.mqtt.url, config.mqtt)
 
     async function changeAlarmStatus(code, partitionId) {
         switch (code) {
@@ -96,11 +137,11 @@ module.exports = (config) => {
     }
 
     function subscribeAlarmStateChange(partition) {
-        winstonLogger.info(`Subscribe on ${ALARM_TOPIC}/${partition.Id}/set topic`)
+        logger.info(`Subscribe on ${ALARM_TOPIC}/${partition.Id}/set topic`)
         mqttClient.subscribe(`${ALARM_TOPIC}/${partition.Id}/set`)
     }
 
-    function alarmPayload(/** @type {Partition} */ partition) {
+    function alarmPayload(partition) {
         if (partition.Alarm) {
             return 'triggered'
         } else if (!partition.Arm && !partition.HomeStay) {
@@ -115,18 +156,18 @@ module.exports = (config) => {
     }
 
     function publishPartitionStateChanged(partition) {
-        mqttClient.publish(`${ALARM_TOPIC}/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true})
-        winstonLogger.info(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`)
+        mqttClient.publish(`${ALARM_TOPIC}/${partition.Id}/status`, alarmPayload(partition), {qos: 1, retain: true})
+        logger.info(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`)
     }
 
     function publishSensorsStateChange(zone) {
         const partitionId = zone.Parts[0]
         mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}`, JSON.stringify({
             label: zone.Label, type: zone.Type, typeStr: zone.TypeStr, tech: zone.ZTech, tamper: zone.Tamper
-        }), { qos: 1, retain: true})
+        }), {qos: 1, retain: true})
         let zoneStatus = zone.Open ? '1' : '0';
         mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}/status`, zoneStatus)
-        winstonLogger.info(`[Panel => MQTT] Published sensor status ${zoneStatus} on zone ${zone.Label}`)
+        logger.info(`[Panel => MQTT] Published sensor status ${zoneStatus} on zone ${zone.Label}`)
     }
 
     function activePartitions(partitions) {
@@ -141,7 +182,7 @@ module.exports = (config) => {
         mqttClient.publish(`${ALARM_TOPIC}/status`, 'online', {
             qos: 1, retain: true
         });
-        winstonLogger.debug("[Panel => MQTT] Published alarm online")
+        logger.debug("[Panel => MQTT] Published alarm online")
     }
 
     function publishHomeAssistantDiscoveryInfo() {
@@ -155,54 +196,60 @@ module.exports = (config) => {
                 },
                 'command_topic': `${ALARM_TOPIC}/${partition.Id}/set`
             }
-            mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/alarm_control_panel/${RISCO_NODE_ID}/${partition.Id}/config`, JSON.stringify(payload), {
+            mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${RISCO_NODE_ID}/${partition.Id}/config`, JSON.stringify(payload), {
                 qos: 1, retain: true
             })
-            winstonLogger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA on partition ${partition.Id}`)
+            logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA on partition ${partition.Id}`)
+            logger.debug(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`)
         }
 
         for (const zone of activeZones(panel.Zones)) {
             const partitionId = zone.Parts[0]
             const nodeId = zone.Label.replace(/ /g, '-')
-            const payload = {
-                name: `${zoneLabelPrefix}${zone.Label}`,
+
+            const zoneConf = _.merge(config.zones.default, config.zones?.[zone.Label]);
+
+            const payload: any = {
                 availability: {
                     topic: `${ALARM_TOPIC}/status`
                 },
                 unique_id: `risco-alarm-panel-${partitionId}-zone-${zone.Id}`,
-                device_class: 'motion',
                 payload_on: '1',
                 payload_off: '0',
+                device_class: zoneConf.device_class,
                 qos: 1,
                 state_topic: `${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}/status`,
                 json_attributes_topic: `${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}`
             }
-            const zone_off_delay = (config.zones && config.zones[zone.Label] && config.zones[zone.Label].off_delay) || zones_off_delay
-            if (zone_off_delay !== -1) {
-                payload.off_delay = zone_off_delay // If the service is stopped with any activated zone, it can remain forever on without this config
+
+            if (zoneConf.off_delay) {
+                payload.off_delay = zoneConf.off_delay // If the service is stopped with any activated zone, it can remain forever on without this config
             }
 
-            mqttClient.publish(`${HASSIO_DISCOVERY_PREFIX_TOPIC}/binary_sensor/${nodeId}/${zone.Id}/config`, JSON.stringify(payload), {
-                qos: 1,
-                retain: true
-            })
-            winstonLogger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`)
-            winstonLogger.debug(`[Panel => MQTT][Discovery] ${JSON.stringify(payload)}`)
+            const zoneName = zoneConf.name || zone.Label;
+            payload.name = zoneConf.name_prefix + zoneName
+
+            mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeId}/${zone.Id}/config`, JSON.stringify(payload), {
+                 qos: 1,
+                 retain: true
+            });
+            logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`)
+            logger.debug(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`)
         }
     }
 
     function allReady() {
-        winstonLogger.info(`Panel and MQTT communications are ready`)
-        winstonLogger.info(`Publishing Home Assistant discovery info`)
+        logger.info(`Panel and MQTT communications are ready`)
+        logger.info(`Publishing Home Assistant discovery info`)
         publishHomeAssistantDiscoveryInfo();
 
-        winstonLogger.info(`Subscribing to Home assistant commands topics`)
+        logger.info(`Subscribing to Home assistant commands topics`)
         for (const partition of activePartitions(panel.Partitions)) {
             subscribeAlarmStateChange(partition)
         }
         publishOnline();
 
-        winstonLogger.info(`Publishing initial partitions and zones state to Home assistant`)
+        logger.info(`Publishing initial partitions and zones state to Home assistant`)
         for (const partition of activePartitions(panel.Partitions)) {
             publishPartitionStateChanged(partition);
         }
@@ -211,11 +258,11 @@ module.exports = (config) => {
             publishSensorsStateChange(zone);
         }
 
-        winstonLogger.info(`Initialization completed`)
+        logger.info(`Initialization completed`)
     }
 
     mqttClient.on('connect', () => {
-        winstonLogger.info(`Connected on mqtt server: ${mqttURL}`)
+        logger.info(`Connected on mqtt server: ${config.mqtt.url}`)
         if (panelReady) {
             allReady()
         } else {
@@ -226,7 +273,7 @@ module.exports = (config) => {
     })
 
     mqttClient.on('error', (error) => {
-        winstonLogger.error(`MQTT connection error: ${error}`)
+        logger.error(`MQTT connection error: ${error}`)
     })
 
     mqttClient.on('message', (topic, message) => {
@@ -234,17 +281,17 @@ module.exports = (config) => {
         if ((m = ALARM_TOPIC_REGEX.exec(topic)) !== null) {
             m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (partitionId) => {
                 const command = message.toString()
-                winstonLogger.info(`[MQTT => Panel] Received change state command ${command} on topic ${topic} in partition ${partitionId}`)
+                logger.info(`[MQTT => Panel] Received change state command ${command} on topic ${topic} in partition ${partitionId}`)
                 try {
                     const success = await changeAlarmStatus(command, partitionId)
                     if (success) {
-                        winstonLogger.info(`[MQTT => Panel] ${command} command sent on partition ${partitionId}`)
+                        logger.info(`[MQTT => Panel] ${command} command sent on partition ${partitionId}`)
                     } else {
-                        winstonLogger.error(`[MQTT => Panel] Failed to send ${command} command on partition ${partitionId}`)
+                        logger.error(`[MQTT => Panel] Failed to send ${command} command on partition ${partitionId}`)
                     }
                 } catch (err) {
-                    winstonLogger.error(`[MQTT => Panel] Error during state change command ${command} from topic ${topic} on partition ${partitionId}`)
-                    winstonLogger.error(err)
+                    logger.error(`[MQTT => Panel] Error during state change command ${command} from topic ${topic} on partition ${partitionId}`)
+                    logger.error(err)
                 }
             });
         }

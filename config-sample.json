@@ -1,0 +1,27 @@
+{
+  "log": "info",
+  "panel": {
+    "Panel_IP": "192.168.1.150",
+    "Panel_Port": 1000,
+    "Panel_Password": 1234,
+    "Panel_Id": "0001",
+    "WatchDogInterval": 10000
+  },
+  "mqtt": {
+    "url": "mqtt://192.168.1.10:1883",
+    "username": "MQTT_USERNAME",
+    "password": "MQTT_PASSWORD"
+  },
+  "zones": {
+    "default": {
+      "off_delay": 30,
+      "name_prefix": "Sensor - "
+    },
+    "GARAGE": {
+      "off_delay": 0,
+      "device_class": "garage_door",
+      "name": "Garage Door",
+      "name_prefix": ""
+    }
+  }
+}

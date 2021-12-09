@@ -32,25 +32,30 @@ Create a file config.json in your project directory.
 
 ```
 {
-  "log": "debug", // Optional, default to "info"
-  "zones": {
-    "off_delay": 30 // Optional auto off configuration for detectors. -1 to disable (default value)
-    "GARAGE": { // Optional Per-zone overrides for zone. Zones names are logged at startup after initial discovery 
-      "off_delay": -1 // Disable off_delay for this zone 
-    }
-  },
+  "log": "info", // Optional, default to "info"
   "panel": {
-    "Panel_IP": "YOUR_PANEL_IP",
-    "Panel_Port": YOUR_PANEL_PORT, // default is 1000
-    "Panel_Password": XXXX, //Panel installer code
-    "Panel_Id": "0001", // Optional, default to "0001"
-    "WatchDogInterval": 10000 // Optional, default to 5000
+    "Panel_IP": "192.168.1.150",
+    "Panel_Port": 1000,
+    "Panel_Password": 1234,
+    "Panel_Id": "0001",
+    "WatchDogInterval": 10000
   },
   "mqtt": {
-    "url": "mqtt://MQTT_HOST:MQTT_PORT",
+    "url": "mqtt://192.168.1.10:1883",
     "username": "MQTT_USERNAME",
-    "password": "MQTT_PASSWORD",
-    "zone-label-prefix": "Détecteur - " // Will be added as prefix for zones names, in order to get more user friendly names. Default is empty
+    "password": "MQTT_PASSWORD"
+  },
+  "zones": {
+    "default": { // Default zones configuration
+      "off_delay": 30, // Optional auto off configuration for detectors. 0 to disable (default value: disabled)
+      "name_prefix": "Sensor - " // A common prefix, added before all zone name
+    },
+    "GARAGE": { // Override config for an individual zone (based on zone label)
+      "off_delay": 0, // Disable off_delay for this zone.
+      "device_class": "garage_door", // override device class for binary sensor. default to "motion". see HA documentation for available values
+      "name": "Garage Door", // Override default name for this zone. Default to zone label
+      "name_prefix": "" // Force zone name prefix to empty for this zone
+    }
   }
 }
 

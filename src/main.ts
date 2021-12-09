@@ -1,11 +1,10 @@
-#!/usr/bin/env node
-
 const fs = require('fs');
 const path = require('path');
-const riscoMqttHomeAssistant = require('../')
+import {riscoMqttHomeAssistant} from './lib';
 
 try {
     const configPath = path.join(process.cwd(), 'config.json')
+    console.log('Loading config from: ' + configPath)
     if (fs.existsSync(configPath)) {
         const config = require(configPath)
         riscoMqttHomeAssistant(config)
@@ -14,6 +13,6 @@ try {
         process.exit(1)
     }
 } catch (e) {
-    console.log('file config.json is not in json format')
+    console.log('E config.json is not in json format')
     process.exit(1)
 }
