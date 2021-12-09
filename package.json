@@ -20,7 +20,7 @@
   "author": "Johann Vanackere <johann.vanackere@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@vanackej/risco-lan-bridge": "^0.10.6",
+    "@vanackej/risco-lan-bridge": "^0.10.7",
     "mqtt": "^4.2.8",
     "winston": "^3.3.3"
   },

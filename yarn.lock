@@ -11,10 +11,10 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@vanackej/risco-lan-bridge@^0.10.6":
-  version "0.10.6"
-  resolved "https://registry.yarnpkg.com/@vanackej/risco-lan-bridge/-/risco-lan-bridge-0.10.6.tgz#acdb77f4299fe6b3e56ec03feaf078e6ed9fdc86"
-  integrity sha512-V+dZdL34sgeXAGs4/rYSfBiJez98Lm3CdDNktdq0ANhj907brmeE4eNP89I5XDvAhnMezhVTQBN5Rt4MYc2YWQ==
+"@vanackej/risco-lan-bridge@^0.10.7":
+  version "0.10.7"
+  resolved "https://registry.yarnpkg.com/@vanackej/risco-lan-bridge/-/risco-lan-bridge-0.10.7.tgz#b7b7e82d8ba71606ccac06bab6de190fac59c6d5"
+  integrity sha512-0j+zkUldjS011Z1+ryIm4wyZ7q+KXHKImFwg72asYebQC46P5yLxYYBWE0McGrET5+fkxj2DdPHNV10wJR7h+w==
 
 async@^3.1.0:
   version "3.2.2"
