@@ -21,10 +21,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.12.tgz#ac7fb693ac587ee182c3780c26eb65546a1a3c10"
   integrity sha512-+2Iggwg7PxoO5Kyhvsq9VarmPbIelXP070HMImEpbtGCoyWNINQj4wzjbQCXzdHTRXnqufutJb5KAURZANNBAw==
 
-"@vanackej/risco-lan-bridge@^0.10.7":
-  version "0.10.7"
-  resolved "https://registry.yarnpkg.com/@vanackej/risco-lan-bridge/-/risco-lan-bridge-0.10.7.tgz#b7b7e82d8ba71606ccac06bab6de190fac59c6d5"
-  integrity sha512-0j+zkUldjS011Z1+ryIm4wyZ7q+KXHKImFwg72asYebQC46P5yLxYYBWE0McGrET5+fkxj2DdPHNV10wJR7h+w==
+"@vanackej/risco-lan-bridge@^0.10.8":
+  version "0.10.8"
+  resolved "https://registry.yarnpkg.com/@vanackej/risco-lan-bridge/-/risco-lan-bridge-0.10.8.tgz#ad1552782e1ade8057aaaacc0f618519d1cfc979"
+  integrity sha512-+K6bR8xEe/AfYnucJtepd78C8+JyIUYhdnRpV1E/zF397lC8DxgIQCYkSkNgWpF+kMCijQLjOU038CUK+u2arA==
 
 async@^3.1.0:
   version "3.2.2"
