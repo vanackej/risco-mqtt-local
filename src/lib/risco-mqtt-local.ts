@@ -13,7 +13,7 @@ import {
 } from "@vanackej/risco-lan-bridge/dist"
 import pkg from 'winston';
 const {createLogger, format, transports} = pkg;
-const {combine, timestamp, printf} = format;
+const {combine, timestamp, printf, colorize} = format;
 
 const ALARM_TOPIC = "riscopanel/alarm"
 const ALARM_TOPIC_REGEX = /^riscopanel\/alarm\/([0-9])*\/set$/m
@@ -72,6 +72,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const logger = createLogger({
         format: combine(
+            colorize({
+               all: true
+            }),
             timestamp({
                 format: () => new Date().toLocaleString()
             }),
@@ -168,7 +171,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }), {qos: 1, retain: true})
         let zoneStatus = zone.Open ? '1' : '0';
         mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}/status`, zoneStatus)
-        logger.info(`[Panel => MQTT] Published sensor status ${zoneStatus} on zone ${zone.Label}`)
+        logger.verbose(`[Panel => MQTT] Published sensor status ${zoneStatus} on zone ${zone.Label}`)
     }
 
     function activePartitions(partitions: PartitionList): Partition[] {
@@ -183,7 +186,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         mqttClient.publish(`${ALARM_TOPIC}/status`, 'online', {
             qos: 1, retain: true
         });
-        logger.debug("[Panel => MQTT] Published alarm online")
+        logger.verbose("[Panel => MQTT] Published alarm online")
     }
 
     function publishHomeAssistantDiscoveryInfo() {
@@ -201,7 +204,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
                 qos: 1, retain: true
             })
             logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA on partition ${partition.Id}`)
-            logger.debug(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`)
+            logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`)
         }
 
         for (const zone of activeZones(panel.zones)) {
@@ -235,7 +238,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
                 retain: true
             });
             logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`)
-            logger.debug(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`)
+            logger.verbose(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`)
         }
     }
 
