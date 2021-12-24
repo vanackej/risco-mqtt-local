@@ -37,8 +37,8 @@ Create a file config.json in your project directory.
   "panel": {
     "panelIp": "192.168.1.150",
     "panelPort": 1000,
-    "panelPassword": 1234,
-    "panelId": "0001",
+    "panelPassword": "1234",
+    "panelId": 1,
     "watchDogInterval": 10000
   },
   "mqtt": {
