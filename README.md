@@ -35,11 +35,11 @@ Create a file config.json in your project directory.
 {
   "log": "info", // Optional, default to "info"
   "panel": {
-    "Panel_IP": "192.168.1.150",
-    "Panel_Port": 1000,
-    "Panel_Password": 1234,
-    "Panel_Id": "0001",
-    "WatchDogInterval": 10000
+    "panelIp": "192.168.1.150",
+    "panelPort": 1000,
+    "panelPassword": 1234,
+    "panelId": "0001",
+    "watchDogInterval": 10000
   },
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",

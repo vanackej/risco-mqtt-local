@@ -1,11 +1,19 @@
 import {IClientOptions} from 'mqtt/types/lib/client';
 
-import * as _ from 'lodash';
-
-const mqtt = require('mqtt')
-const {createLogger, format, transports} = require('winston');
+import merge from 'lodash/merge';
+import mqtt from "mqtt"
+import {
+    RiscoPanel,
+    RiscoLogger,
+    Partition,
+    PartitionList,
+    Zone,
+    ZoneList,
+    PanelOptions
+} from "@vanackej/risco-lan-bridge/dist"
+import pkg from 'winston';
+const {createLogger, format, transports} = pkg;
 const {combine, timestamp, printf} = format;
-const RiscoPanel = require('@vanackej/risco-lan-bridge').RiscoPanel;
 
 const ALARM_TOPIC = "riscopanel/alarm"
 const ALARM_TOPIC_REGEX = /^riscopanel\/alarm\/([0-9])*\/set$/m
@@ -20,14 +28,7 @@ export interface RiscoMQTTConfig {
         default?: ZoneConfig
         [label: string]: ZoneConfig
     }
-    panel: {
-        Panel_IP?: string
-        Panel_Port?: number
-        Panel_Password?: number,
-        Panel_Id?: number,
-        WatchDogInterval?: number,
-        logger?: any
-    },
+    panel: PanelOptions,
     mqtt?: MQTTConfig
 }
 
@@ -45,8 +46,7 @@ export interface ZoneConfig {
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     log: 'info',
     ha_discovery_prefix_topic: 'homeassistant',
-    panel: {
-    },
+    panel: {},
     zones: {
         default: {
             off_delay: 0,
@@ -68,7 +68,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
 
 export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
-    const config = _.merge(CONFIG_DEFAULTS, userConfig)
+    const config = merge(CONFIG_DEFAULTS, userConfig)
 
     const logger = createLogger({
         format: combine(
@@ -88,12 +88,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.debug(`User config:\n${JSON.stringify(userConfig, null, 2)}`)
     logger.debug(`Merged config:\n${JSON.stringify(config, null, 2)}`)
 
-    config.panel.logger = (log_channel, log_lvl, log_data) => {
-        logger.log({
-            level: log_lvl,
-            message: log_data
-        })
-    };
+    class WinstonRiscoLogger implements RiscoLogger {
+        log(log_lvl: LogLevel, log_data: any) {
+            logger.log(log_lvl, log_data)
+        }
+    }
+
+    config.panel.logger = new WinstonRiscoLogger()
 
     let panelReady = false;
 
@@ -104,19 +105,19 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     panel.on('SystemInitComplete', () => {
         panelReady = true
         logger.info(`Subscribing to panel partitions and zones events`)
-        panel.Partitions.on('PStatusChanged', (Id, EventStr) => {
+        panel.partitions.on('PStatusChanged', (Id, EventStr) => {
             if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy'].includes(EventStr)) {
-                publishPartitionStateChanged(panel.Partitions.ById(Id));
+                publishPartitionStateChanged(panel.partitions.byId(Id));
             }
         });
 
-        panel.Zones.on('ZStatusChanged', (Id, EventStr) => {
+        panel.zones.on('ZStatusChanged', (Id, EventStr) => {
             if (['Closed', 'Open'].includes(EventStr)) {
-                publishSensorsStateChange(panel.Zones.ById(Id))
+                publishSensorsStateChange(panel.zones.byId(Id))
             }
         });
 
-        panel.RiscoComm.on('Clock', () => {
+        panel.riscoComm.on('Clock', () => {
             publishOnline()
         })
     })
@@ -127,21 +128,21 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     async function changeAlarmStatus(code, partitionId) {
         switch (code) {
             case 'DISARM':
-                return await panel.DisarmPart(partitionId);
+                return await panel.disarmPart(partitionId);
             case 'ARM_HOME':
             case 'ARM_NIGHT':
-                return await panel.ArmPart(partitionId, 1);
+                return await panel.armHome(partitionId);
             case 'ARM_AWAY':
-                return await panel.ArmPart(partitionId, 0);
+                return await panel.armAway(partitionId);
         }
     }
 
-    function subscribeAlarmStateChange(partition) {
+    function subscribeAlarmStateChange(partition: Partition) {
         logger.info(`Subscribe on ${ALARM_TOPIC}/${partition.Id}/set topic`)
         mqttClient.subscribe(`${ALARM_TOPIC}/${partition.Id}/set`)
     }
 
-    function alarmPayload(partition) {
+    function alarmPayload(partition: Partition) {
         if (partition.Alarm) {
             return 'triggered'
         } else if (!partition.Arm && !partition.HomeStay) {
@@ -155,12 +156,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
     }
 
-    function publishPartitionStateChanged(partition) {
+    function publishPartitionStateChanged(partition: Partition) {
         mqttClient.publish(`${ALARM_TOPIC}/${partition.Id}/status`, alarmPayload(partition), {qos: 1, retain: true})
         logger.info(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`)
     }
 
-    function publishSensorsStateChange(zone) {
+    function publishSensorsStateChange(zone: Zone) {
         const partitionId = zone.Parts[0]
         mqttClient.publish(`${ALARM_TOPIC}/${partitionId}/sensor/${zone.Id}`, JSON.stringify({
             label: zone.Label, type: zone.Type, typeStr: zone.TypeStr, tech: zone.ZTech, tamper: zone.Tamper
@@ -170,12 +171,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info(`[Panel => MQTT] Published sensor status ${zoneStatus} on zone ${zone.Label}`)
     }
 
-    function activePartitions(partitions) {
-        return partitions.filter(p => p.Exist)
+    function activePartitions(partitions: PartitionList): Partition[] {
+        return partitions.values.filter(p => p.Exist)
     }
 
-    function activeZones(zones) {
-        return zones.filter(z => z.ZTech !== 'None' && !z.NotUsed && z.Type !== '0')
+    function activeZones(zones: ZoneList): Zone[] {
+        return zones.values.filter(z => z.ZTech !== 'None' && !z.NotUsed && z.Type !== 0)
     }
 
     function publishOnline() {
@@ -186,7 +187,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
 
     function publishHomeAssistantDiscoveryInfo() {
-        for (const partition of activePartitions(panel.Partitions)) {
+        for (const partition of activePartitions(panel.partitions)) {
             const payload = {
                 'name': `risco-alarm-panel-${partition.Id}`,
                 'state_topic': `${ALARM_TOPIC}/${partition.Id}/status`,
@@ -203,11 +204,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
             logger.debug(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`)
         }
 
-        for (const zone of activeZones(panel.Zones)) {
+        for (const zone of activeZones(panel.zones)) {
             const partitionId = zone.Parts[0]
             const nodeId = zone.Label.replace(/ /g, '-')
 
-            const zoneConf = _.merge(config.zones.default, config.zones?.[zone.Label]);
+            const zoneConf = merge(config.zones.default, config.zones?.[zone.Label]);
 
             const payload: any = {
                 availability: {
@@ -230,8 +231,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
             payload.name = zoneConf.name_prefix + zoneName
 
             mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeId}/${zone.Id}/config`, JSON.stringify(payload), {
-                 qos: 1,
-                 retain: true
+                qos: 1,
+                retain: true
             });
             logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`)
             logger.debug(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`)
@@ -244,17 +245,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         publishHomeAssistantDiscoveryInfo();
 
         logger.info(`Subscribing to Home assistant commands topics`)
-        for (const partition of activePartitions(panel.Partitions)) {
+        for (const partition of activePartitions(panel.partitions)) {
             subscribeAlarmStateChange(partition)
         }
         publishOnline();
 
         logger.info(`Publishing initial partitions and zones state to Home assistant`)
-        for (const partition of activePartitions(panel.Partitions)) {
+        for (const partition of activePartitions(panel.partitions)) {
             publishPartitionStateChanged(partition);
         }
 
-        for (const zone of activeZones(panel.Zones)) {
+        for (const zone of activeZones(panel.zones)) {
             publishSensorsStateChange(zone);
         }
 
