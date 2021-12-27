@@ -12,6 +12,7 @@ import {
     PanelOptions
 } from "@vanackej/risco-lan-bridge/dist"
 import pkg from 'winston';
+
 const {createLogger, format, transports} = pkg;
 const {combine, timestamp, printf, colorize} = format;
 
@@ -73,7 +74,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     const logger = createLogger({
         format: combine(
             colorize({
-               all: true
+                all: true
             }),
             timestamp({
                 format: () => new Date().toLocaleString()
@@ -100,6 +101,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     config.panel.logger = new WinstonRiscoLogger()
 
     let panelReady = false;
+    let mqttReady = false;
 
     if (!config.mqtt?.url) throw new Error('mqtt url options is required')
 
@@ -107,7 +109,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     panel.on('SystemInitComplete', () => {
         panelReady = true
-        logger.info(`Subscribing to panel partitions and zones events`)
+        logger.info(`Panel is ready, subscribing to panel partitions and zones events`)
         panel.partitions.on('PStatusChanged', (Id, EventStr) => {
             if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy'].includes(EventStr)) {
                 publishPartitionStateChanged(panel.partitions.byId(Id));
@@ -123,6 +125,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         panel.riscoComm.on('Clock', () => {
             publishOnline()
         })
+        panelOrMqttConnected()
     })
 
     logger.info(`Connecting to mqtt server: ${config.mqtt.url}`)
@@ -242,7 +245,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
     }
 
-    function allReady() {
+    function panelOrMqttConnected() {
+        if (!panelReady) {
+            logger.info(`Panel is not connected, waiting`)
+            return
+        }
+        if (!mqttReady) {
+            logger.info(`MQTT is not connected, waiting`)
+            return
+        }
         logger.info(`Panel and MQTT communications are ready`)
         logger.info(`Publishing Home Assistant discovery info`)
         publishHomeAssistantDiscoveryInfo();
@@ -267,13 +278,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     mqttClient.on('connect', () => {
         logger.info(`Connected on mqtt server: ${config.mqtt.url}`)
-        if (panelReady) {
-            allReady()
-        } else {
-            panel.on('SystemInitComplete', () => {
-                allReady()
-            })
-        }
+        mqttReady = true
+        panelOrMqttConnected()
+    })
+
+    mqttClient.on('disconnect', () => {
+        mqttReady = false
     })
 
     mqttClient.on('error', (error) => {
