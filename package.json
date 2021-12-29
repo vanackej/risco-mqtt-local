@@ -24,7 +24,7 @@
   "author": "Johann Vanackere <johann.vanackere@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@vanackej/risco-lan-bridge": "^0.11.0-beta2",
+    "@vanackej/risco-lan-bridge": "^0.12.0",
     "lodash": "^4.17.21",
     "mqtt": "^4.2.8",
     "winston": "^3.3.3",
