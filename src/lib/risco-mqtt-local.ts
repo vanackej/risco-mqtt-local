@@ -23,7 +23,8 @@ const RISCO_NODE_ID = 'risco-alarm-panel'
 type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
 export interface RiscoMQTTConfig {
-    log?: LogLevel
+    log?: LogLevel,
+    logColorize?: boolean,
     ha_discovery_prefix_topic?: string
     zones?: {
         default?: ZoneConfig
@@ -46,6 +47,7 @@ export interface ZoneConfig {
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     log: 'info',
+    logColorize: false,
     ha_discovery_prefix_topic: 'homeassistant',
     panel: {},
     zones: {
@@ -74,7 +76,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     const logger = createLogger({
         format: combine(
             colorize({
-                all: true
+                all: config.logColorize
             }),
             timestamp({
                 format: () => new Date().toLocaleString()
