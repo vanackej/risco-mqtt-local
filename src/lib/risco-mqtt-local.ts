@@ -133,6 +133,54 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`Connecting to mqtt server: ${config.mqtt.url}`)
     const mqttClient = mqtt.connect(config.mqtt.url, config.mqtt)
 
+    mqttClient.on('connect', () => {
+        logger.info(`Connected on mqtt server: ${config.mqtt.url}`)
+        if (!mqttReady) {
+            mqttReady = true
+            panelOrMqttConnected()
+        }
+    })
+
+    mqttClient.on('reconnect', () => {
+        logger.info('MQTT reconnect')
+    })
+
+    mqttClient.on('disconnect', () => {
+        logger.info('MQTT disconnect')
+        mqttReady = false
+    })
+
+    mqttClient.on('close', () => {
+        logger.info('MQTT close')
+        mqttReady = false
+    })
+
+    mqttClient.on('error', (error) => {
+        logger.error(`MQTT connection error: ${error}`)
+        mqttReady = false
+    })
+
+    mqttClient.on('message', (topic, message) => {
+        let m;
+        if ((m = ALARM_TOPIC_REGEX.exec(topic)) !== null) {
+            m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (partitionId) => {
+                const command = message.toString()
+                logger.info(`[MQTT => Panel] Received change state command ${command} on topic ${topic} in partition ${partitionId}`)
+                try {
+                    const success = await changeAlarmStatus(command, partitionId)
+                    if (success) {
+                        logger.info(`[MQTT => Panel] ${command} command sent on partition ${partitionId}`)
+                    } else {
+                        logger.error(`[MQTT => Panel] Failed to send ${command} command on partition ${partitionId}`)
+                    }
+                } catch (err) {
+                    logger.error(`[MQTT => Panel] Error during state change command ${command} from topic ${topic} on partition ${partitionId}`)
+                    logger.error(err)
+                }
+            });
+        }
+    })
+
     async function changeAlarmStatus(code, partitionId) {
         switch (code) {
             case 'DISARM':
@@ -278,38 +326,4 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info(`Initialization completed`)
     }
 
-    mqttClient.on('connect', () => {
-        logger.info(`Connected on mqtt server: ${config.mqtt.url}`)
-        mqttReady = true
-        panelOrMqttConnected()
-    })
-
-    mqttClient.on('disconnect', () => {
-        mqttReady = false
-    })
-
-    mqttClient.on('error', (error) => {
-        logger.error(`MQTT connection error: ${error}`)
-    })
-
-    mqttClient.on('message', (topic, message) => {
-        let m;
-        if ((m = ALARM_TOPIC_REGEX.exec(topic)) !== null) {
-            m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (partitionId) => {
-                const command = message.toString()
-                logger.info(`[MQTT => Panel] Received change state command ${command} on topic ${topic} in partition ${partitionId}`)
-                try {
-                    const success = await changeAlarmStatus(command, partitionId)
-                    if (success) {
-                        logger.info(`[MQTT => Panel] ${command} command sent on partition ${partitionId}`)
-                    } else {
-                        logger.error(`[MQTT => Panel] Failed to send ${command} command on partition ${partitionId}`)
-                    }
-                } catch (err) {
-                    logger.error(`[MQTT => Panel] Error during state change command ${command} from topic ${topic} on partition ${partitionId}`)
-                    logger.error(err)
-                }
-            });
-        }
-    })
 }
