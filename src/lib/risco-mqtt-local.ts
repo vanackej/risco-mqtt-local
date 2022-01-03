@@ -73,18 +73,26 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const config = merge(CONFIG_DEFAULTS, userConfig)
 
-    const logger = createLogger({
-        format: combine(
+    let format = combine(
+        timestamp({
+            format: () => new Date().toLocaleString()
+        }),
+        printf(({level, message, label, timestamp}) => {
+            return `${timestamp} [${level}] ${message}`;
+        })
+    )
+    if (config.logColorize) {
+        format = combine(
             colorize({
-                all: config.logColorize
+                all: false,
+                level: true
             }),
-            timestamp({
-                format: () => new Date().toLocaleString()
-            }),
-            printf(({level, message, label, timestamp}) => {
-                return `${timestamp} [${level}] ${message}`;
-            })
-        ),
+            format
+        )
+    }
+
+    const logger = createLogger({
+        format: format,
         level: config.log || 'info',
         transports: [
             new transports.Console()
@@ -181,7 +189,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
     })
 
-    async function changeAlarmStatus(code, partitionId) {
+    async function changeAlarmStatus(code: string, partitionId: number) {
         switch (code) {
             case 'DISARM':
                 return await panel.disarmPart(partitionId);
