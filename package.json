@@ -1,6 +1,6 @@
 {
   "name": "@vanackej/risco-mqtt-local",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Node Risco Mqtt using local panel API",
   "main": "dist/main.js",
   "types": "dist/lib/index.d.ts",
@@ -25,7 +25,7 @@
   "author": "Johann Vanackere <johann.vanackere@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@vanackej/risco-lan-bridge": "^0.12.1",
+    "@vanackej/risco-lan-bridge": "^0.12.2",
     "lodash": "^4.17.21",
     "mqtt": "^4.3.2",
     "winston": "^3.3.3",

@@ -21,10 +21,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.12.tgz#ac7fb693ac587ee182c3780c26eb65546a1a3c10"
   integrity sha512-+2Iggwg7PxoO5Kyhvsq9VarmPbIelXP070HMImEpbtGCoyWNINQj4wzjbQCXzdHTRXnqufutJb5KAURZANNBAw==
 
-"@vanackej/risco-lan-bridge@^0.12.1":
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@vanackej/risco-lan-bridge/-/risco-lan-bridge-0.12.1.tgz#98bce3f726237406ccf47e7bbf27d894a994ba57"
-  integrity sha512-F+xdVDnkWDD42EdoIFt1PuggCMPTvjd8m0+TVG2rDu2PZF2KCTXn9skaGgYvl3vAtF7xSZYlLT2mwzfpt4m5vQ==
+"@vanackej/risco-lan-bridge@^0.12.2":
+  version "0.12.2"
+  resolved "https://registry.yarnpkg.com/@vanackej/risco-lan-bridge/-/risco-lan-bridge-0.12.2.tgz#3a9cf6f9db342d846952e8735a5a7523f30e902d"
+  integrity sha512-7QWfx2eVuVS9c51y+CT2V50oIFL2vZzYUgOQizV/8yVysDTLmnXictxN+o8DtzW/kwcWg48tc9XfaajDqAO5BQ==
   dependencies:
     tiny-typed-emitter "^2.1.0"
     tslib "^2.3.1"
