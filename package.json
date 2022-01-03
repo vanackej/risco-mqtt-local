@@ -8,6 +8,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "prepublishOnly": "yarn run build",
+    "run": "tsc && node ./dist/main.js",
     "test": "echo \"Error: no test specified\""
   },
   "repository": {
@@ -24,9 +25,9 @@
   "author": "Johann Vanackere <johann.vanackere@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@vanackej/risco-lan-bridge": "^0.12.0",
+    "@vanackej/risco-lan-bridge": "^0.12.1",
     "lodash": "^4.17.21",
-    "mqtt": "^4.2.8",
+    "mqtt": "^4.3.2",
     "winston": "^3.3.3",
     "tiny-typed-emitter": "^2.1.0"
   },
