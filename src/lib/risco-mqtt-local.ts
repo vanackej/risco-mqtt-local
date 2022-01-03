@@ -60,7 +60,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     mqtt: {
         url: null,
         reconnectPeriod: 5000,
-        clientId: 'risco-mqtt',
+        clientId: 'risco-mqtt-' + Math.random().toString(16).substring(2, 8),
         will: {
             topic: `${ALARM_TOPIC}/status`, payload: 'offline', qos: 1, retain: true, properties: {
                 willDelayInterval: 30
