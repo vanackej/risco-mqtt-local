@@ -25,7 +25,8 @@ type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 export interface RiscoMQTTConfig {
     log?: LogLevel,
     logColorize?: boolean,
-    ha_discovery_prefix_topic?: string
+    ha_discovery_prefix_topic?: string,
+    ha_discovery_include_nodeId?: boolean,
     zones?: {
         default?: ZoneConfig
         [label: string]: ZoneConfig
@@ -49,6 +50,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     log: 'info',
     logColorize: false,
     ha_discovery_prefix_topic: 'homeassistant',
+    ha_discovery_include_nodeId: false,
     panel: {},
     zones: {
         default: {
@@ -270,8 +272,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
         for (const zone of activeZones(panel.zones)) {
             const partitionId = zone.Parts[0]
-            const nodeId = zone.Label.replace(/ /g, '-')
-
+            
             const zoneConf = merge(config.zones.default, config.zones?.[zone.Label]);
 
             const payload: any = {
@@ -292,9 +293,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
             }
 
             const zoneName = zoneConf.name || zone.Label;
-            payload.name = zoneConf.name_prefix + zoneName
+            payload.name = zoneConf.name_prefix + zoneName;
 
-            mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeId}/${zone.Id}/config`, JSON.stringify(payload), {
+            let nodeIdSegment: string;
+            if (config.ha_discovery_include_nodeId) {
+                nodeIdSegment = `${zone.Label.replace(/ /g, '-')}/${zone.Id}`;
+            } else {
+                nodeIdSegment = `${zone.Id}`;
+            }
+
+            mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}/config`, JSON.stringify(payload), {
                 qos: 1,
                 retain: true
             });
