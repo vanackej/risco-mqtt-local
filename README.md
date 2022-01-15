@@ -4,22 +4,28 @@
 [![Node Version](https://shields.io/node/v/@vanackej/risco-mqtt-local)](https://www.npmjs.com/package/@vanackej/risco-mqtt-local)
 [![Maintenance badge](https://shields.io/badge/maintenance-yes-green.svg)](https://www.npmjs.com/package/@vanackej/risco-mqtt-local)
 
-# risco-mqtt-local
+[![Add to Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fvanackej%2Frisco-mqtt-local)
+
+# Risco MQTT Local integration
+
+Provide Risco alarm panels integration to Home Assistant using Local TCP communication with Panel (no cloud access required)
 
 This project is a fork of [risco-mqtt-home-assistant](https://github.com/mancioshell/risco-mqtt-home-assistant) by [Alessandro Mancini](https://github.com/mancioshell), using local APIs instead of RiscoCloud APIs.
 Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communication library](https://github.com/TJForc/risco-lan-bridge)
 
 ## Requirements
-* Node.js (currently tested with >=ver. 10.x)
-* Mqtt Server - e.g. Mosquitto, HiveMQ, etc.
-* Home Assistant
+
+- Node.js (currently tested with >=ver. 10.x)
+- Mqtt Server - e.g. Mosquitto, HiveMQ, etc.
+- Home Assistant
 
 ## Features
-* Interaction with RISCO alarm control panel using local APIs.
-* Interaction with MQTT Alarm Control Panel integration in Home Assistant.
-* Interaction with MQTT Binary Sensor integration in Home Assistant.
-* Home Assistant MQTT Auto Discovery.
-* RISCO multipartitions.
+
+- Interaction with RISCO alarm control panel using local APIs.
+- Interaction with MQTT Alarm Control Panel integration in Home Assistant.
+- Interaction with MQTT Binary Sensor integration in Home Assistant.
+- Home Assistant MQTT Auto Discovery.
+- RISCO multipartitions.
 
 ## Installation
 
@@ -94,7 +100,7 @@ Default `<discovery_prefix>` is **homeassistant**. You can change it by overwrit
 
 ## Usage
 
-First, create the `config.json` file. 
+First, create the `config.json` file.
 
 ### Using Node
 
