@@ -11,10 +11,10 @@ try {
         const config = require(configPath)
         riscoMqttHomeAssistant(config)
     } else {
-        console.log('file config.json does not exist')
+        console.log(`file ${configPath} does not exist`)
         process.exit(1)
     }
 } catch (e) {
-    console.log('E config.json is not in json format')
+    console.error('Startup error', e)
     process.exit(1)
 }
