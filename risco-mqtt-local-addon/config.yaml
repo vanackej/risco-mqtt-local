@@ -1,0 +1,28 @@
+name: Risco local MQTT
+version: 0.3.2
+slug: risco-mqtt-local-addon
+description: Risco alarm HA integration using local TCP communication and MQTT
+url: https://github.com/vanackej/risco-mqtt-local
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+host_network: true
+ports:
+  33000/tcp: 33000
+ports_description:
+  33000/tcp: Socket server for proxy mode
+options:
+  log: info
+  logColorize: false
+  ha_discovery_include_nodeId: false
+  panel:
+    panelIp: str
+schema:
+  log: list(trace|debug|info|notice|warning|error|fatal)?
+  logColorize: bool?
+  ha_discovery_include_nodeId: bool?
+  panel:
+    panelIp: str
