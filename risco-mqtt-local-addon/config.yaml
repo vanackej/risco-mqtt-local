@@ -9,20 +9,9 @@ arch:
   - armhf
   - armv7
   - i386
-host_network: true
 ports:
   33000/tcp: 33000
 ports_description:
   33000/tcp: Socket server for proxy mode
-options:
-  log: info
-  logColorize: false
-  ha_discovery_include_nodeId: false
-  panel:
-    panelIp: str
-schema:
-  log: list(trace|debug|info|notice|warning|error|fatal)?
-  logColorize: bool?
-  ha_discovery_include_nodeId: bool?
-  panel:
-    panelIp: str
+map:
+  - config:rw

@@ -1,13 +1,30 @@
-FROM node:lts-alpine
+ARG NODE_VERSION="16"
+ARG BASE_IMAGE="node:${NODE_VERSION}-alpine"
 
-WORKDIR /usr/src/app
+FROM ${BASE_IMAGE} AS build
 
-COPY package.json ./
-COPY tsconfig.json ./
-COPY yarn.lock ./
-COPY src/** ./
-COPY . .
+WORKDIR /workspace
+
+COPY package.json yarn.lock ./
+
 RUN yarn install
-RUN yarn build
 
-CMD [ "node", "./dist/main.js" ]
+COPY . ./
+
+RUN yarn run build
+
+
+FROM scratch AS rootfs
+
+COPY --from=build /workspace/dist /dist
+
+COPY --from=build /workspace/config-sample.json /dist/
+
+
+FROM ${BASE_IMAGE}
+
+WORKDIR /data
+
+COPY --from=rootfs / /
+
+CMD [ "node", "/dist/main.js" ]
