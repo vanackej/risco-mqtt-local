@@ -11,14 +11,17 @@ RUN yarn install
 
 COPY . ./
 
-RUN yarn run build
+RUN yarn run build \
+    && yarn install --production
 
 
 FROM scratch AS rootfs
 
-COPY --from=build /workspace/dist /dist
+COPY --from=build /workspace/node_modules /app/node_modules
 
-COPY --from=build /workspace/config-sample.json /dist/
+COPY --from=build /workspace/dist /app/dist
+
+COPY --from=build /workspace/config-sample.json /app/
 
 
 FROM ${BASE_IMAGE}
@@ -27,4 +30,4 @@ WORKDIR /data
 
 COPY --from=rootfs / /
 
-CMD [ "node", "/dist/main.js" ]
+CMD [ "node", "/app/dist/main.js" ]
