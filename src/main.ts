@@ -10,7 +10,7 @@ try {
         // if this var is set, we know we are running in the addon
         configPath = process.env.RISCO_MQTT_HA_CONFIG_FILE
         // check if is file
-        const sampleConfigPath = path.join(__dirname, "config-sample.json")
+        const sampleConfigPath = path.join(__dirname, "../config-sample.json")
         if (!fs.existsSync(configPath) && fs.existsSync(sampleConfigPath)) {
             fs.copyFileSync(sampleConfigPath, configPath);
         }
