@@ -110,7 +110,7 @@ To start risco-mqtt-local you can simply type:
 
 ### Using Docker image
 
-`docker run -v $(pwd)/config.json:/usr/src/app/config.json vanackej/risco-mqtt-local`
+`docker run -v $(pwd)/config.json:/data/config.json vanackej/risco-mqtt-local`
 
 ## Credits
 
