@@ -13,6 +13,7 @@ A clear and concise description of what the bug is.
 **Configuration**
  - Environment: [e.g. HA Addon, Docker, NodeJS]
  - Version: [e.g. v0.x.x]
+ - Mode: [proxy or direct]
  - Command line (if not running as HA Addon): 
  - Risco Panel model: 
  - Risco Panel firmware version: 
