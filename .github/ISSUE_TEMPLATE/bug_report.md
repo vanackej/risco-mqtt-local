@@ -1,0 +1,29 @@
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+**Describe the bug**
+A clear and concise description of what the bug is.
+
+**Configuration**
+ - Environment: [e.g. HA Addon, Docker, NodeJS]
+ - Version: [e.g. v0.x.x]
+ - Command line (if not running as HA Addon): 
+ - Risco Panel model: 
+ - Risco Panel firmware version: 
+
+**Logs**
+```
+Copy/paste the application logs here :
+- With debug log level enabled
+- Including startup logs
+- You are responsible of removing any sensitive information, like MQTT and panel credentials
+```
+
+**Additional context**
+Add any other context about the problem here.
