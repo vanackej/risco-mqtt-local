@@ -1,5 +1,10 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.3.7
+
+- Stability fixes
+- Add option to logs all commands in a separated file
+
 ## 0.3.6
 
 - Improve reliability during discovery

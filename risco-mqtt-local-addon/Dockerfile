@@ -1,3 +1,3 @@
-FROM vanackej/risco-mqtt-local:v0.3.6
+FROM vanackej/risco-mqtt-local:v0.3.7
 
 ENV RISCO_MQTT_HA_CONFIG_FILE="/config/risco-mqtt.json"
