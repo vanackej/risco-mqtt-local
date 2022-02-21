@@ -4,3 +4,4 @@ config.json
 .idea/
 /dist/
 workspace.code-workspace
+risco-commands-*.csv
