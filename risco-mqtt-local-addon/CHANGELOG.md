@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.3.8
+
+- Fix a major bug in decryption mecanism
+
 ## 0.3.7
 
 - Stability fixes
