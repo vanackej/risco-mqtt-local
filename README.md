@@ -26,6 +26,7 @@ Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communi
 - Interaction with MQTT Binary Sensor integration in Home Assistant.
 - Home Assistant MQTT Auto Discovery.
 - RISCO multipartitions.
+- Bypass zones in Home Assistant (additional switch created for each zone)
 
 ## Installation
 
