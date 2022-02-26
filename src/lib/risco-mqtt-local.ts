@@ -18,8 +18,8 @@ const { createLogger, format, transports } = pkg;
 const { combine, timestamp, printf, colorize } = format;
 
 const ALARM_TOPIC = 'riscopanel/alarm';
-const ALARM_TOPIC_REGEX = /^riscopanel\/alarm\/([0-9])*\/set$/m;
-const ZONE_BYPASS_TOPIC_REGEX = /^riscopanel\/alarm\/zone\/([0-9])*-bypass\/set$/m;
+const ALARM_TOPIC_REGEX = /^riscopanel\/alarm\/([0-9]+)\/set$/m;
+const ZONE_BYPASS_TOPIC_REGEX = /^riscopanel\/alarm\/zone\/([0-9]+)-bypass\/set$/m;
 const RISCO_NODE_ID = 'risco-alarm-panel';
 
 type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
@@ -371,6 +371,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`);
+      logger.info(`[Panel => MQTT][Discovery] Published switch to HA: Zone label = ${zone.Label}, HA name = ${bypassZonePayload.name}`);
       logger.verbose(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`);
       logger.verbose(`[Panel => MQTT][Discovery] Bypass switch discovery payload\n${JSON.stringify(bypassZonePayload, null, 2)}`);
     }
