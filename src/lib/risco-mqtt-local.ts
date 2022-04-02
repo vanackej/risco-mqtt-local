@@ -335,6 +335,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         availability: {
           topic: `${ALARM_TOPIC}/status`,
         },
+        availability_mode: "all",
         unique_id: `risco-alarm-panel-zone-${zone.Id}-bypass`,
         payload_on: '1',
         payload_off: '0',
