@@ -71,6 +71,8 @@ Create a file config.json in your project directory.
 
 The panel full configuration options are described here : https://github.com/vanackej/risco-lan-bridge#configuration
 
+NB Ensure that zone description matches label stored in panel exactly (including case) to ensure that config is correctly represented.
+
 ## Subscribe Topics
 
 **risco-mqtt-local** subscribes at startup one topic for every partition in your risco alarm panel configuration.
@@ -98,6 +100,8 @@ In addition to every zones, risco-mqtt-local publishes a topic for every zone wi
 risco-mqtt-local supports [mqtt auto discovery](https://www.home-assistant.io/docs/mqtt/discovery/) feature.
 
 Default `<discovery_prefix>` is **homeassistant**. You can change it by overwriting the value within **home-assistant-discovery-prefix** config.
+
+Home assistant auto discovery republizhed on Home Assistant restart.
 
 ## Usage
 
