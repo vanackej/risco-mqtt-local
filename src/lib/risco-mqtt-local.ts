@@ -162,6 +162,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.error(`MQTT connection error: ${error}`);
     mqttReady = false;
   });
+  
+  mqttClient.subscribe(`homeassistant/status`, { qos: 0 }, function (error, granted) {
+      if (error) {
+        logger.error(`Error subscribing to homeassistant/status`)
+      } else {
+        logger.info(`${granted[0].topic} was subscribed`)
+      }
+  });      
 
   mqttClient.on('message', (topic, message) => {
     let m;
@@ -201,7 +209,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.error(err);
         }
       });
-    }
+    } else if (topic = `homeassistant/status`) {
+          if (message = `online`) {
+             panelOrMqttConnected();
+          } else {
+                logger.error(`Home Assistant has gone offline`);
+          }
+      }
   });
 
   async function changeAlarmStatus(code: string, partitionId: number) {
@@ -249,14 +263,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     let zoneStatus = zone.Open ? '1' : '0';
     mqttClient.publish(`${ALARM_TOPIC}/zone/${zone.Id}/status`, zoneStatus, {
-        qos:1, retain: true,
+        qos:1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
     mqttClient.publish(`${ALARM_TOPIC}/zone/${zone.Id}-bypass/status`, zone.Bypass ? '1' : '0', {
-        qos:1, retain: true,
+        qos:1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published zone bypass status ${zone.Bypass} on zone ${zone.Label}`);
   }
