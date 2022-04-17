@@ -101,7 +101,7 @@ risco-mqtt-local supports [mqtt auto discovery](https://www.home-assistant.io/do
 
 Default `<discovery_prefix>` is **homeassistant**. You can change it by overwriting the value within **home-assistant-discovery-prefix** config.
 
-Home assistant auto discovery republizhed on Home Assistant restart.
+Home assistant auto discovery republished on Home Assistant restart.
 
 ## Usage
 
