@@ -48,6 +48,7 @@ Create a file config.json in your project directory.
     "panelId": 1,
     "watchDogInterval": 10000
   },
+  "ha_discovery_prefix_topic": "homeassistant" //Optional
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
     "username": "MQTT_USERNAME",
