@@ -163,9 +163,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttReady = false;
   });
   
-  mqttClient.subscribe(`homeassistant/status`, { qos: 0 }, function (error, granted) {
+  mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function (error, granted) {
       if (error) {
-        logger.error(`Error subscribing to homeassistant/status`)
+        logger.error(`Error subscribing to ${config.ha_discovery_prefix_topic}/status`)
       } else {
         logger.info(`${granted[0].topic} was subscribed`)
       }
@@ -209,7 +209,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.error(err);
         }
       });
-    } else if (topic = `homeassistant/status`) {
+    } else if (topic = `${config.ha_discovery_prefix_topic}/status`) {
           if (message = `online`) {
              panelOrMqttConnected();
           } else {
