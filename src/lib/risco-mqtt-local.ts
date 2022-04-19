@@ -161,15 +161,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   mqttClient.on('error', (error) => {
     logger.error(`MQTT connection error: ${error}`);
     mqttReady = false;
-  });
-  
-  mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function (error, granted) {
-      if (error) {
-        logger.error(`Error subscribing to ${config.ha_discovery_prefix_topic}/status`)
-      } else {
-        logger.info(`${granted[0].topic} was subscribed`)
-      }
-  });      
+  });    
 
   mqttClient.on('message', (topic, message) => {
     let m;
@@ -446,7 +438,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           publishZoneBypassStateChange(panel.zones.byId(Id));
         }
       });
-
+      logger.info(`Subscribing to Home Assistant online status`);
+      mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function (error, granted) {
+          if (error) {
+             logger.error(`Error subscribing to ${config.ha_discovery_prefix_topic}/status`)
+          } else {
+          logger.info(`${granted[0].topic} was subscribed`)
+          }
+      });  
       panel.riscoComm.on('Clock', publishOnline);
 
       listenerInstalled = true;
