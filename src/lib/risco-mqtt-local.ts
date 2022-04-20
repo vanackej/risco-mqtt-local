@@ -125,7 +125,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
       panelReady = false;
-      publishOffline()
+      publishOffline();
     });
     if (!panelReady) {
       panelReady = true;
@@ -161,7 +161,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   mqttClient.on('error', (error) => {
     logger.error(`MQTT connection error: ${error}`);
     mqttReady = false;
-  });    
+  });
 
   mqttClient.on('message', (topic, message) => {
     let m;
@@ -202,12 +202,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       });
     } else if (topic = `${config.ha_discovery_prefix_topic}/status`) {
-          if (message = `online`) {
-             panelOrMqttConnected();
-          } else {
-                logger.error(`Home Assistant has gone offline`);
-          }
+      if (message = `online`) {
+        panelOrMqttConnected();
+      } else {
+        logger.error(`Home Assistant has gone offline`);
       }
+    }
   });
 
   async function changeAlarmStatus(code: string, partitionId: number) {
@@ -255,14 +255,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     let zoneStatus = zone.Open ? '1' : '0';
     mqttClient.publish(`${ALARM_TOPIC}/zone/${zone.Id}/status`, zoneStatus, {
-        qos:1, retain: false,
+      qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
     mqttClient.publish(`${ALARM_TOPIC}/zone/${zone.Id}-bypass/status`, zone.Bypass ? '1' : '0', {
-        qos:1, retain: false,
+      qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published zone bypass status ${zone.Bypass} on zone ${zone.Label}`);
   }
@@ -440,13 +440,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       });
       logger.info(`Subscribing to Home Assistant online status`);
-      mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function (error, granted) {
-          if (error) {
-             logger.error(`Error subscribing to ${config.ha_discovery_prefix_topic}/status`)
-          } else {
-          logger.info(`${granted[0].topic} was subscribed`)
-          }
-      });  
+      mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function(error, granted) {
+        if (error) {
+          logger.error(`Error subscribing to ${config.ha_discovery_prefix_topic}/status`);
+        } else {
+          logger.info(`${granted[0].topic} was subscribed`);
+        }
+      });
       panel.riscoComm.on('Clock', publishOnline);
 
       listenerInstalled = true;
