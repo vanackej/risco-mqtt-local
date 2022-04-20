@@ -1,4 +1,6 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+## 0.4.2
+- Republish state after home assistant restart
 
 ## 0.4.1
 - fix #24: Bypassing zone errors
