@@ -48,6 +48,7 @@ Create a file config.json in your project directory.
     "panelId": 1,
     "watchDogInterval": 10000
   },
+  "ha_discovery_prefix_topic": "homeassistant" //Optional
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
     "username": "MQTT_USERNAME",
@@ -70,6 +71,8 @@ Create a file config.json in your project directory.
 ```
 
 The panel full configuration options are described here : https://github.com/vanackej/risco-lan-bridge#configuration
+
+NB Ensure that zone description matches label stored in panel exactly (including case) to ensure that config is correctly represented.
 
 ## Subscribe Topics
 
@@ -98,6 +101,8 @@ In addition to every zones, risco-mqtt-local publishes a topic for every zone wi
 risco-mqtt-local supports [mqtt auto discovery](https://www.home-assistant.io/docs/mqtt/discovery/) feature.
 
 Default `<discovery_prefix>` is **homeassistant**. You can change it by overwriting the value within **home-assistant-discovery-prefix** config.
+
+Home assistant auto discovery republished on Home Assistant restart.
 
 ## Usage
 
