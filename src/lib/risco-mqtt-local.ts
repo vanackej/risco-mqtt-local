@@ -201,11 +201,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.error(err);
         }
       });
-    } else if (topic = `${config.ha_discovery_prefix_topic}/status`) {
-      if (message = `online`) {
+    } else if (topic == `${config.ha_discovery_prefix_topic}/status`) {
+      if (message.toString() === 'online') {
+        logger.info('Home Assistant is back online');
         panelOrMqttConnected();
       } else {
-        logger.error(`Home Assistant has gone offline`);
+        logger.info('Home Assistant has gone offline');
       }
     }
   });
