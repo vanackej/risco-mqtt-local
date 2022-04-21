@@ -7,6 +7,8 @@ import {
   RiscoLogger,
   Partition,
   PartitionList,
+  Output,
+  OutputList
   Zone,
   ZoneList,
   PanelOptions,
