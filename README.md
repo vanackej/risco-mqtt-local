@@ -27,6 +27,7 @@ Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communi
 - Home Assistant MQTT Auto Discovery.
 - RISCO multipartitions.
 - Bypass zones in Home Assistant (additional switch created for each zone)
+- Multiple systems now supported with configurable alarm topic.
 
 ## Installation
 
@@ -49,6 +50,7 @@ Create a file config.json in your project directory.
     "watchDogInterval": 10000
   },
   "ha_discovery_prefix_topic": "homeassistant" //Optional
+  "mqtt_alarm_topic": "riscopanel" //Optional
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
     "username": "MQTT_USERNAME",
