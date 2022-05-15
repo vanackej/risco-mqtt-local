@@ -19,15 +19,14 @@ import { cloneDeep } from 'lodash';
 const { createLogger, format, transports } = pkg;
 const { combine, timestamp, printf, colorize } = format;
 
-const ALARM_TOPIC = 'riscopanel/alarm';
-const ALARM_TOPIC_REGEX = /^riscopanel\/alarm\/([0-9]+)\/set$/m;
-const ZONE_BYPASS_TOPIC_REGEX = /^riscopanel\/alarm\/zone\/([0-9]+)-bypass\/set$/m;
+const ALARM_TOPIC_REGEX = /^\w+\/alarm\/([0-9]+)\/set$/m;
+const ZONE_BYPASS_TOPIC_REGEX = /^\w+\/alarm\/zone\/([0-9]+)-bypass\/set$/m;
 const CONFIG_DEFAULTS = {
     log: 'info',
     logColorize: false,
     ha_discovery_prefix_topic: 'homeassistant',
     ha_discovery_include_nodeId: false,
-    mqtt_alarm_topic: 'riscopanel/alarm',
+    mqtt_alarm_topic: 'riscopanel',
     risco_node_id: 'risco-alarm-panel',
     panel: {},
     zones: {
@@ -39,6 +38,8 @@ const CONFIG_DEFAULTS = {
     },
     mqtt: {
         url: null,
+        username: null,
+        password: null,
         reconnectPeriod: 5000,
         clientId: 'risco-mqtt-' + Math.random().toString(16).substring(2, 8),
     },
@@ -46,8 +47,6 @@ const CONFIG_DEFAULTS = {
 function riscoMqttHomeAssistant(userConfig) {
     var _a;
     const config = (0, merge_1.default)(CONFIG_DEFAULTS, userConfig);
-    const COMBINED_ALARM_TOPIC_REGEX = new RegExp(ALARM_TOPIC_REGEX); "riscopanel/alarm".replace(COMBINED_ALARM_TOPIC_REGEX, config.mqtt_alarm_topic);
-    const COMBINED_ZONE_BYPASS_TOPIC_REGEX = new RegExp(ZONE_BYPASS_TOPIC_REGEX); "riscopanel/alarm".replace(COMBINED_ZONE_BYPASS_TOPIC_REGEX, config.mqtt_alarm_topic);
     let format = combine(timestamp({
         format: () => new Date().toLocaleString(),
     }), printf(({ level, message, label, timestamp }) => {
@@ -91,11 +90,21 @@ function riscoMqttHomeAssistant(userConfig) {
         }
     });
     logger.info(`Connecting to mqtt server: ${config.mqtt.url}`);
-    const mqttClient = mqtt_1.default.connect(config.mqtt.url, config.mqtt.reconnectPeriod, config.mqtt.clientId, JSON.stringify({ will: {
-        topic: `${config.mqtt_alarm_topic}/status`, payload: 'offline', qos: 1, retain: true, properties: {
-            willDelayInterval: 30,
-        },
-    }}));
+    const mqtt_options = {
+        clientId: `${config.mqtt.clientId}`,
+        reconnectPeriod: config.mqtt.reconnectPeriod,
+        username: `${config.mqtt.username}`,
+        password: `${config.mqtt.password}`,
+        will: {
+            topic: `${config.mqtt_alarm_topic}/alarm/status`, 
+            payload: 'offline',
+            qos: 1,
+            retain: true,
+            properties: {
+                willDelayInterval: 30
+            }
+        }}
+    const mqttClient = mqtt_1.default.connect(config.mqtt.url, mqtt_options)
     mqttClient.on('connect', () => {
         logger.info(`Connected on mqtt server: ${config.mqtt.url}`);
         if (!mqttReady) {
@@ -104,14 +113,14 @@ function riscoMqttHomeAssistant(userConfig) {
         }
     });
     mqttClient.on('reconnect', () => {
-        logger.info('MQTT reconnect');
+        logger.info('MQTT reconnected');
     });
     mqttClient.on('disconnect', () => {
-        logger.info('MQTT disconnect');
+        logger.info('MQTT disconnected');
         mqttReady = false;
     });
     mqttClient.on('close', () => {
-        logger.info('MQTT close');
+        logger.info('MQTT closed');
         mqttReady = false;
     });
     mqttClient.on('error', (error) => {
@@ -120,7 +129,16 @@ function riscoMqttHomeAssistant(userConfig) {
     });
     mqttClient.on('message', (topic, message) => {
         let m;
-        if ((m = COMBINED_ALARM_TOPIC_REGEX.exec(topic)) !== null) {
+        if (topic == `${config.ha_discovery_prefix_topic}/status`) {
+            if (message.toString() === 'online') {
+                logger.info('Home Assistant is back online');
+                panelOrMqttConnected();
+            }
+            else {
+                logger.info('Home Assistant has gone offline');
+            }
+        }
+        else if ((m = ALARM_TOPIC_REGEX.exec(topic)) !== null) {
             m.filter((match, groupIndex) => groupIndex !== 0).forEach((partitionId) => __awaiter(this, void 0, void 0, function* () {
                 const command = message.toString();
                 logger.info(`[MQTT => Panel] Received change state command ${command} on topic ${topic} in partition ${partitionId}`);
@@ -139,7 +157,7 @@ function riscoMqttHomeAssistant(userConfig) {
                 }
             }));
         }
-        else if ((m = COMBINED_ZONE_BYPASS_TOPIC_REGEX.exec(topic)) !== null) {
+        else if ((m = ZONE_BYPASS_TOPIC_REGEX.exec(topic)) !== null) {
             m.filter((match, groupIndex) => groupIndex !== 0).forEach((zoneId) => __awaiter(this, void 0, void 0, function* () {
                 const bypass = parseInt(message.toString(), 10) == 1;
                 logger.info(`[MQTT => Panel] Received bypass zone command ${bypass} on topic ${topic} for zone ${zoneId}`);
@@ -162,15 +180,6 @@ function riscoMqttHomeAssistant(userConfig) {
                     logger.error(err);
                 }
             }));
-        }
-        else if (topic == `${config.ha_discovery_prefix_topic}/status`) {
-            if (message.toString() === 'online') {
-                logger.info('Home Assistant is back online');
-                panelOrMqttConnected();
-            }
-            else {
-                logger.info('Home Assistant has gone offline');
-            }
         }
     });
     function changeAlarmStatus(code, partitionId) {
@@ -203,12 +212,12 @@ function riscoMqttHomeAssistant(userConfig) {
         }
     }
     function publishPartitionStateChanged(partition) {
-        mqttClient.publish(`${config.mqtt_alarm_topic}/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
+        mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
         logger.info(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`);
     }
     function publishZoneStateChange(zone, publishAttributes) {
         if (publishAttributes) {
-            mqttClient.publish(`${config.mqtt_alarm_topic}/zone/${zone.Id}`, JSON.stringify({
+            mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}`, JSON.stringify({
                 id: zone.Id,
                 label: zone.Label,
                 type: zone.type,
@@ -219,13 +228,13 @@ function riscoMqttHomeAssistant(userConfig) {
             }), { qos: 1, retain: true });
         }
         let zoneStatus = zone.Open ? '1' : '0';
-        mqttClient.publish(`${config.mqtt_alarm_topic}/zone/${zone.Id}/status`, zoneStatus, {
+        mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}/status`, zoneStatus, {
             qos: 1, retain: false,
         });
         logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
     }
     function publishZoneBypassStateChange(zone) {
-        mqttClient.publish(`${config.mqtt_alarm_topic}/zone/${zone.Id}-bypass/status`, zone.Bypass ? '1' : '0', {
+        mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}-bypass/status`, zone.Bypass ? '1' : '0', {
             qos: 1, retain: false,
         });
         logger.verbose(`[Panel => MQTT] Published zone bypass status ${zone.Bypass} on zone ${zone.Label}`);
@@ -237,14 +246,14 @@ function riscoMqttHomeAssistant(userConfig) {
         return zones.values.filter(z => !z.NotUsed);
     }
     function publishOnline() {
-        mqttClient.publish(`${config.mqtt_alarm_topic}/status`, 'online', {
+        mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/status`, 'online', {
             qos: 1, retain: true,
         });
         logger.verbose('[Panel => MQTT] Published alarm online');
     }
     function publishOffline() {
         if (mqttReady) {
-            mqttClient.publish(`${config.mqtt_alarm_topic}/status`, 'offline', {
+            mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/status`, 'offline', {
                 qos: 1, retain: true,
             });
             logger.verbose('[Panel => MQTT] Published alarm offline');
@@ -265,13 +274,13 @@ function riscoMqttHomeAssistant(userConfig) {
             const payload = {
                 name: partition.Label,
                 object_id: `${config.risco_node_id}-${partition.Id}`,
-                state_topic: `${config.mqtt_alarm_topic}/${partition.Id}/status`,
+                state_topic: `${config.mqtt_alarm_topic}/alarm/${partition.Id}/status`,
                 unique_id: `${config.risco_node_id}-${partition.Id}`,
                 availability: {
-                    topic: `${config.mqtt_alarm_topic}/status`,
+                    topic: `${config.mqtt_alarm_topic}/alarm/status`,
                 },
                 device: getDeviceInfo(),
-                command_topic: `${config.mqtt_alarm_topic}/${partition.Id}/set`,
+                command_topic: `${config.mqtt_alarm_topic}/alarm/${partition.Id}/set`,
             };
             mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partition.Id}/config`, JSON.stringify(payload), {
                 qos: 1, retain: true,
@@ -285,7 +294,7 @@ function riscoMqttHomeAssistant(userConfig) {
             (0, merge_1.default)(zoneConf, (_a = config.zones) === null || _a === void 0 ? void 0 : _a[zone.Label]);
             const payload = {
                 availability: {
-                    topic: `${config.mqtt_alarm_topic}/status`,
+                    topic: `${config.mqtt_alarm_topic}/alarm/status`,
                 },
                 unique_id: `${config.risco_node_id}-zone-${zone.Id}`,
                 payload_on: '1',
@@ -293,12 +302,12 @@ function riscoMqttHomeAssistant(userConfig) {
                 device_class: zoneConf.device_class,
                 device: getDeviceInfo(),
                 qos: 1,
-                state_topic: `${config.mqtt_alarm_topic}/zone/${zone.Id}/status`,
-                json_attributes_topic: `${config.mqtt_alarm_topic}/zone/${zone.Id}`,
+                state_topic: `${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}/status`,
+                json_attributes_topic: `${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}`,
             };
             const bypassZonePayload = {
                 availability: {
-                    topic: `${config.mqtt_alarm_topic}/status`,
+                    topic: `${config.mqtt_alarm_topic}/alarm/status`,
                 },
                 unique_id: `${config.risco_node_id}-zone-${zone.Id}-bypass`,
                 payload_on: '1',
@@ -308,8 +317,8 @@ function riscoMqttHomeAssistant(userConfig) {
                 icon: 'mdi:toggle-switch-off',
                 device: getDeviceInfo(),
                 qos: 1,
-                state_topic: `${config.mqtt_alarm_topic}/zone/${zone.Id}-bypass/status`,
-                command_topic: `${config.mqtt_alarm_topic}/zone/${zone.Id}-bypass/set`,
+                state_topic: `${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}-bypass/status`,
+                command_topic: `${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}-bypass/set`,
             };
             if (zoneConf.off_delay) {
                 payload.off_delay = zoneConf.off_delay; // If the service is stopped with any activated zone, it can remain forever on without this config
@@ -362,12 +371,12 @@ function riscoMqttHomeAssistant(userConfig) {
         if (!listenerInstalled) {
             logger.info(`Subscribing to Home assistant commands topics`);
             for (const partition of activePartitions(panel.partitions)) {
-                const partitionCommandsTopic = `${config.mqtt_alarm_topic}/${partition.Id}/set`;
+                const partitionCommandsTopic = `${config.mqtt_alarm_topic}/alarm/${partition.Id}/set`;
                 logger.info(`Subscribing to ${partitionCommandsTopic} topic`);
                 mqttClient.subscribe(partitionCommandsTopic);
             }
             for (const zone of activeZones(panel.zones)) {
-                const zoneBypassTopic = `${config.mqtt_alarm_topic}/zone/${zone.Id}-bypass/set`;
+                const zoneBypassTopic = `${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}-bypass/set`;
                 logger.info(`Subscribing to ${zoneBypassTopic} topic`);
                 mqttClient.subscribe(zoneBypassTopic);
             }
@@ -403,3 +412,4 @@ function riscoMqttHomeAssistant(userConfig) {
         }
         logger.info(`Initialization completed`);
     }
+}
