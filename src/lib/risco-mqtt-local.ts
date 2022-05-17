@@ -51,6 +51,7 @@ export interface MQTTConfig extends IClientOptions {
     properties: {
       willDelayInterval: number
       }
+  }
 }
 
 export interface ZoneConfig {
