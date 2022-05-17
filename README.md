@@ -50,7 +50,8 @@ Create a file config.json in your project directory.
     "watchDogInterval": 10000
   },
   "ha_discovery_prefix_topic": "homeassistant" //Optional
-  "mqtt_alarm_topic": "riscopanel" //Optional
+  "mqtt_alarm_topic": "riscopanel" //Optional - topic to which state changes are published
+  "risco_node_id": "risco-alarm-panel" //Optional - part of HA unique id to ensure no duplication
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
     "username": "MQTT_USERNAME",
