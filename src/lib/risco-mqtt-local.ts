@@ -40,7 +40,7 @@ export interface RiscoMQTTConfig {
 export interface MQTTConfig extends IClientOptions {
   url: string,
   clientId?: string,
-  reconnectPeriod?: string,
+  reconnectPeriod?: number,
   username?: string,
   password?: string,
   will?: {
