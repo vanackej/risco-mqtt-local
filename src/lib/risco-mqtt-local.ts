@@ -38,7 +38,19 @@ export interface RiscoMQTTConfig {
 }
 
 export interface MQTTConfig extends IClientOptions {
-  url: string;
+  url: string,
+  clientId?: string,
+  reconnectPeriod?: string,
+  username?: string,
+  password?: string,
+  will?: {
+    topic?: string, 
+    payload: string,
+    qos: number,
+    retain: boolean,
+    properties: {
+      willDelayInterval: number
+      }
 }
 
 export interface ZoneConfig {
