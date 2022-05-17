@@ -326,7 +326,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         device: getDeviceInfo(),
         command_topic: `${config.mqtt_alarm_topic}/alarm/${partition.Id}/set`,
       };
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${RISCO_NODE_ID}/${partition.Id}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partition.Id}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA on partition ${partition.Id}`);
