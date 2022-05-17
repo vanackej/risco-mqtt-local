@@ -27,6 +27,8 @@ export interface RiscoMQTTConfig {
   logColorize?: boolean,
   ha_discovery_prefix_topic?: string,
   ha_discovery_include_nodeId?: boolean,
+  mqtt_alarm_topic?: string,
+  risco_node_id?: string,
   zones?: {
     default?: ZoneConfig
     [label: string]: ZoneConfig
