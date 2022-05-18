@@ -46,15 +46,6 @@ export interface MQTT_options {
   reconnectPeriod: number,
   username?: string,
   password?: string,
-  will?: {
-    topic: string, 
-    payload: string,
-    qos: number,
-    retain: boolean,
-    properties?: {
-      willDelayInterval: number
-    }
-  }
 }
 
 export interface ZoneConfig {
