@@ -46,6 +46,7 @@ export interface MQTTConfig extends IClientOptions {
   will?: {
     topic: string, 
     payload: string,
+    qos: 0 | 1 | 2,
     retain?: boolean,
     properties?: {
       willDelayInterval: number
