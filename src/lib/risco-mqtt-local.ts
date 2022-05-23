@@ -80,6 +80,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
       topic: `${config.mqtt_alarm_topic}/status`, payload: 'offline', qos: 1, retain: true, properties: {
         willDelayInterval: 30,
       },
+    },
   },
 };
 
