@@ -76,11 +76,6 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     password: null,
     reconnectPeriod: 5000,
     clientId: 'risco-mqtt-' + Math.random().toString(16).substring(2, 8),
-    will: {
-      topic: `${config.mqtt_alarm_topic}/status`, payload: 'offline', qos: 1, retain: true, properties: {
-        willDelayInterval: 30,
-      },
-    },
   },
 };
 
@@ -150,6 +145,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     reconnectPeriod: config.mqtt.reconnectPeriod,
     username: `${config.mqtt.username}`,
     password: `${config.mqtt.password}`,
+    will: {
+      topic: `${config.mqtt_alarm_topic}/alarm/status`, 
+      payload: 'offline',
+      qos: 1,
+      retain: true,
+      properties: {
+        willDelayInterval: 30
+      }
+    }
+  }
 }
   const mqttClient = mqtt.connect(config.mqtt.url, config.mqtt);
 
