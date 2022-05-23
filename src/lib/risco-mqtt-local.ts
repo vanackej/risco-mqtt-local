@@ -155,7 +155,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
     }
   }
-}
+
   const mqttClient = mqtt.connect(config.mqtt.url, config.mqtt);
 
   mqttClient.on('connect', () => {
