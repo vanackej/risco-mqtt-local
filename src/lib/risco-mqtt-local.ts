@@ -148,7 +148,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     will: {
       topic: `${config.mqtt_alarm_topic}/alarm/status`, 
       payload: 'offline',
-      qos: 1,
+      qos: '1',
       retain: true,
       properties: {
         willDelayInterval: 30
