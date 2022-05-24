@@ -41,13 +41,6 @@ export interface MQTTConfig extends IClientOptions {
   url: string
 }
 
-export interface MQTT_options {
-  clientId: string,
-  reconnectPeriod: number,
-  username?: string,
-  password?: string,
-}
-
 export interface ZoneConfig {
   off_delay?: number,
   device_class?: string,
