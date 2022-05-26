@@ -326,6 +326,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function activeZones(zones: ZoneList): Zone[] {
     return zones.values.filter(z => !z.NotUsed);
   }
+  function activeOutputs(outputs: OutputList): Output[] {
+    return outputs.values;
+  }
 
   function publishOnline() {
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/status`, 'online', {
@@ -373,7 +376,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
-    for (const output of panel.outputs) {
+    for (const output of activeOutputs(panel.outputs)) {
       const payload = {
         name: output.Label,
         object_id: `${config.risco_node_id}-output-${output.Id}`,
@@ -488,7 +491,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishZoneBypassStateChange(zone);
     }
 
-    for (const zone of panel.outputs) {
+    for (const zone of activeOutputs(panel.outputs)) {
       publishOutputStateChange(output, true);
     }
 
@@ -504,7 +507,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info(`Subscribing to ${zoneBypassTopic} topic`);
         mqttClient.subscribe(zoneBypassTopic);
       }
-      for (const output of panel.outputs) {
+      for (const output of activeOutputs(panel.outputs)) {
         const outputTopic = `${config.mqtt_alarm_topic}/alarm/output/${output.Id}/trigger`;
         logger.info(`Subscribing to ${outputTopic} topic`);
         mqttClient.subscribe(outputTopic);
