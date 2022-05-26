@@ -224,7 +224,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         const output = parseInt(message.toString(), 10) == 1;
         logger.info(`[MQTT => Panel] Received output trigger command ${output} on topic ${topic} for zone ${outputId}`);
         try {
-          if (output !== panel.outputs.byId(outputId).OStatus) {
+          if (output !== panel.outputs.byId(outputId).Status) {
             const success = await panel.toggleOutput(outputId);
             if (success) {
               logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
@@ -306,7 +306,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         type: output.Type,
       }), { qos: 1, retain: true });
     }
-    let outputStatus = output.OStatus ? '1' : '0';
+    let outputStatus = output.Status ? '1' : '0';
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
       qos: 1, retain: false,
     });
@@ -325,9 +325,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
   function activeZones(zones: ZoneList): Zone[] {
     return zones.values.filter(z => !z.NotUsed);
-  }
-  function activeOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter(o => !o.NotUsed);
   }
 
   function publishOnline() {
@@ -376,7 +373,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
-    for (const output of activeOutputs(panel.outputs)) {
+    for (const output of panel.outputs) {
       const payload = {
         name: output.Label,
         object_id: `${config.risco_node_id}-output-${output.Id}`,
@@ -491,7 +488,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishZoneBypassStateChange(zone);
     }
 
-    for (const zone of activeOutputs(panel.outputs)) {
+    for (const zone of panel.outputs) {
       publishOutputStateChange(output, true);
     }
 
@@ -507,7 +504,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info(`Subscribing to ${zoneBypassTopic} topic`);
         mqttClient.subscribe(zoneBypassTopic);
       }
-      for (const output of activeOutputs(panel.outputs)) {
+      for (const output of panel.outputs) {
         const outputTopic = `${config.mqtt_alarm_topic}/alarm/output/${output.Id}/trigger`;
         logger.info(`Subscribing to ${outputTopic} topic`);
         mqttClient.subscribe(outputTopic);
