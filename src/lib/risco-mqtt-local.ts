@@ -221,15 +221,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if ((m = OUTPUT_TOPIC_REGEX.exec(topic)) !== null) {
       m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (outputId) => {
-        const output = message.toString();
+        const output = parseInt(message.toString(), 10) == 1;
         logger.info(`[MQTT => Panel] Received output trigger command ${output} on topic ${topic} for output ${outputId}`);
         try {
-          const success = await changeOutputPayload(activate, outputId); {
-            if (success) {
-              logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
-            } else {
-              logger.error(`[MQTT => Panel] Failed to send toggle output command on zone ${outputId}`);
-            }
+          const success = await changeOutputPayload(output, outputId); 
+          if (success) {
+            logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
+          } else {
+            logger.error(`[MQTT => Panel] Failed to send toggle output command on zone ${outputId}`);
           }
         } catch (err) {
           logger.error(`[MQTT => Panel] Error during output toggle command from topic ${topic} on output ${outputId}`);
