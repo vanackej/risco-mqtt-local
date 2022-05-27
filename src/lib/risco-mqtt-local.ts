@@ -221,7 +221,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if ((m = OUTPUT_TOPIC_REGEX.exec(topic)) !== null) {
       m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (outputId) => {
-        const output = message.toString();
+        const output = parseInt(message.toString(), 10) ==1;
         logger.info(`[MQTT => Panel] Received output trigger command ${output} on topic ${topic} for output ${outputId}`);
         try {
           if (output !== panel.outputs.byId(outputId).Status) {
@@ -328,7 +328,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function activeOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter (o => !o.UserUsable);
+    return outputs.values.filter (o => o.Type !== null);
   }
 
   function publishOnline() {
