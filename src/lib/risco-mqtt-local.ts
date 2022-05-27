@@ -230,11 +230,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
             } else {
               logger.error(`[MQTT => Panel] Failed to send toggle output command on zone ${outputId}`);
             }
-          } else {
-            logger.info('[MQTT => Panel] Output is already on the desired output state');
           }
         } catch (err) {
-          logger.error(`[MQTT => Panel] Error during zone bypass toggle command from topic ${topic} on output ${outputId}`);
+          logger.error(`[MQTT => Panel] Error during output toggle command from topic ${topic} on output ${outputId}`);
           logger.error(err);
         }
       });
