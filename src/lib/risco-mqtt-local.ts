@@ -258,7 +258,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  async function changeOutputPayload(activate: boolean, outputId: number) {
+  async function changeOutputPayload(activate: number, outputId: number) {
     switch (activate) {
       case 1:
         return await panel.outputs.byId(outputId) !== 'Deactivated';
