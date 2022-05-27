@@ -335,7 +335,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function activeOutputs(outputs: OutputList): Output[] {
-    return outputs.values;
+    return outputs.values.filter (o => !o.UserUsable);
   }
 
   function publishOnline() {
@@ -500,7 +500,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
 
     for (const output of activeOutputs(panel.outputs)) {
-      publishOutputStateChange(output, true);
+      publishOutputStateChange(output);
     }
 
     if (!listenerInstalled) {
@@ -538,7 +538,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.info(`Subscribing to panel outputs events`);
       panel.outputs.on('OStatusChanged', (Id, EventStr) => {
         if (['Pulsed', 'Activated', 'Deactivated'].includes(EventStr)) {
-          publishOutputStateChange(panel.outputs.byId(Id), false);
+          publishOutputStateChange(panel.outputs.byId(Id));
         }
       });
       logger.info(`Subscribing to Home Assistant online status`);
