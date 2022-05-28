@@ -224,7 +224,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         const output = Boolean(message.toString());
         logger.info(`[MQTT => Panel] Received output trigger command ${output} on topic ${topic} for output ${outputId}`);
         try {
-          if (output !== Boolean(adaptOutputId(outputId))) {
+          if (output != adaptOutputId(outputId)) {
           const success = await panel.toggleOutput(outputId);
           if (success) {
             logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
