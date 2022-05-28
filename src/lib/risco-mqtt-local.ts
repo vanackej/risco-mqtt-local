@@ -276,9 +276,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   async function adaptOutputId(activated: number, outputId: number) {
     if (panel.outputs.byId(outputId).Status === "Deactivated") {
-      return '0'
+      return '0';
     } else {
-      return '1'
+      return '1';
     }
   }
 
