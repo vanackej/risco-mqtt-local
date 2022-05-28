@@ -221,7 +221,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if ((m = OUTPUT_TOPIC_REGEX.exec(topic)) !== null) {
       m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (outputId) => {
-        const output = message.toString();
+        const output = parseInt(message.toString(), 10);
         logger.info(`[MQTT => Panel] Received output trigger command ${output} on topic ${topic} for output ${outputId}`);
         try {
           if (output !== adaptOutputId(outputId)) {
