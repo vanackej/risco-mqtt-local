@@ -224,7 +224,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         const output = message.toString();
         logger.info(`[MQTT => Panel] Received output trigger command ${output} on topic ${topic} for output ${outputId}`);
         try {
-          if (output !== adaptOutputId(activated, outputId)) {
+          if (output !== adaptOutputId(outputId)) {
           const success = await panel.toggleOutput(outputId);
           if (success) {
             logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
@@ -274,7 +274,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  async function adaptOutputId(activated: number, outputId: number) {
+  async function adaptOutputId(outputId: number) {
     if (panel.outputs.byId(outputId).Status === "Deactivated") {
       return '0';
     } else {
