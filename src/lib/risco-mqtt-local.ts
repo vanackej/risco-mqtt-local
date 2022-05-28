@@ -259,7 +259,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   async function changeOutputPayload(activate: string, outputId: number) {
-    if (panel.outputs.on.OStatusChanged(outputId) === "Deactivated") {
+    if (panel.Outputs(outputId) === "Deactivated") {
       return '0';
     } else {
       return '1';
