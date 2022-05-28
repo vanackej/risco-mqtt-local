@@ -201,7 +201,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if ((m = ZONE_BYPASS_TOPIC_REGEX.exec(topic)) !== null) {
       m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (zoneId) => {
-        const bypass = parseInt(message.toString(), 10) == 1;
+        const bypass = !!message.toString();
         logger.info(`[MQTT => Panel] Received bypass zone command ${bypass} on topic ${topic} for zone ${zoneId}`);
         try {
           if (bypass !== panel.zones.byId(zoneId).Bypass) {
