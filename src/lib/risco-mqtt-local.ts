@@ -276,7 +276,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   async function adaptOutputId(outputId: number) {
-    if (panel.outputs.byId(outputId).Status === "Deactivated") {
+    if (panel.outputs.byId(outputId).Status === 'Deactivated') {
       return false;
     } else {
       return true;
@@ -284,7 +284,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputStatus(output: Output) {
-    if (output.Status === "Deactivated") {
+    if (output.Status === 'Deactivated') {
       return '0';
     } else {
       return '1';
@@ -335,7 +335,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function activeOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter (o => o.Label !== null);
+    return outputs.values.filter (o => o.Label != null);
   }
 
   function publishOnline() {
