@@ -221,17 +221,19 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if ((m = OUTPUT_TOPIC_REGEX.exec(topic)) !== null) {
       m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (outputId) => {
-        const output = Boolean(message.toString());
-        const outputnew = Boolean(adaptOutputId(outputId));
+        const output = parseInt(message.toString(), 10) == 1;
+
         logger.info(`[MQTT => Panel] Received output trigger command ${output} on topic ${topic} for output ${outputId}`);
         try {
-          if (output != outputnew) {
-          const success = await panel.toggleOutput(outputId);
-          if (success) {
-            logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
-          } else {
-            logger.error(`[MQTT => Panel] Failed to send toggle output command on zone ${outputId}`);
+          if (output !== panel.outputs.byId(outputId).Status) {
+            const success = await panel.toggleOutput(outputId);
+            if (success) {
+              logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
+            } else {
+              logger.error(`[MQTT => Panel] Failed to send toggle output command on zone ${outputId}`);
           }
+        } else {
+          logger.info('[MQTT => Panel] Output is already on the desired output state');
         }
         } catch (err) {
           logger.error(`[MQTT => Panel] Error during output toggle command from topic ${topic} on output ${outputId}`);
@@ -272,14 +274,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       } else {
         return 'armed_away';
       }
-    }
-  }
-
-  async function adaptOutputId(outputId: number) {
-    if (panel.outputs.byId(outputId).Status === 'Deactivated') {
-      return false;
-    } else {
-      return true;
     }
   }
 
