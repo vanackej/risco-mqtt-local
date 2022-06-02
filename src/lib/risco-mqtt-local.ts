@@ -277,7 +277,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(output: Output) {
-    if (output.Status === 'Deactivated') {
+    if (output.Status === false) {
       return '0';
     } else {
       return '1';
