@@ -401,13 +401,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${output.Id}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published output to HA on output ${output.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published switch to HA on output ${output.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
     for (const privateoutput of activePrivateOutputs(panel.outputs)) {
       const payload = {
         name: privateoutput.Label,
-        unique_id: `${config.risco_node_id}-output-${privateoutput.Id}`,
+        unique_id: `${config.risco_node_id}-privateoutput-${privateoutput.Id}`,
         availability: {
           topic: `${config.mqtt_alarm_topic}/alarm/status`,
         },
@@ -422,7 +422,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/${privateoutput.Id}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published output to HA on output ${privateoutput.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA on output ${privateoutput.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
