@@ -328,7 +328,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function activeOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter (o => o.Label !== '');
+    return outputs.values.filter (o => o.UserUsable !== false);
   }
 
   function publishOnline() {
