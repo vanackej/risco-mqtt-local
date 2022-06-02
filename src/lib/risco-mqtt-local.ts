@@ -221,10 +221,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if ((m = OUTPUT_TOPIC_REGEX.exec(topic)) !== null) {
       m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (outputId) => {
-        const output = message.toString();
-        logger.info(`[MQTT => Panel] Received output trigger command ${output} on topic ${topic} for output ${outputId}`);
+        const outputcommand = message.toString();
+        logger.info(`[MQTT => Panel] Received output trigger command on topic ${topic} for output ${outputId}`);
         try {
-          if (output !== panel.outputs.byId(outputId).Status) {
+          if (outputcommand !== panel.outputs.byId(outputId).Status) {
             const success = await panel.toggleOutput(outputId);
             if (success) {
               logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
@@ -277,7 +277,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(output: Output) {
-    if (output.Id.Status === 'Deactivated') {
+    if (output.Status === 'Deactivated') {
       return '0';
     } else {
       return '1';
