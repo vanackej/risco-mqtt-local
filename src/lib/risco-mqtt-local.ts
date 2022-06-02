@@ -277,7 +277,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(output: Output) {
-    if (output.Status === '-') {
+    if (output.Status === 'Deactivated') {
       return '0';
     } else {
       return '1';
@@ -308,8 +308,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
   function publishOutputStateChange(output: Output) {
-    let outputStatus = output.Status ? '1' : '0';
-    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus ? '1' : '0', {
+    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputState() ? '1' : '0', {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published output status ${outputStatus} on output ${output.Label}`);
@@ -329,7 +328,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function activeOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter (o => o.Type !== 0);
+    return outputs.values.filter (o => o.Label !== '');
   }
 
   function publishOnline() {
