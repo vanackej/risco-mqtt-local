@@ -331,6 +331,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function activeOutputs(outputs: OutputList): Output[] {
     return outputs.values.filter (o => o.UserUsable !== false);
   }
+  function activePrivateOutputs(outputs: OutputList): Output[] {
+    return outputs.values.filter (o => o.UserUsable === false && o.Label !=='');
+  }
 
   function publishOnline() {
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/status`, 'online', {
@@ -396,6 +399,27 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         command_topic: `${config.mqtt_alarm_topic}/alarm/output/${output.Id}/trigger`,
       };
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${output.Id}/config`, JSON.stringify(payload), {
+        qos: 1, retain: true,
+      });
+      logger.info(`[Panel => MQTT][Discovery] Published output to HA on output ${output.Id}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
+    }
+    for (const output of activePrivateOutputs(panel.outputs)) {
+      const payload = {
+        name: output.Label,
+        unique_id: `${config.risco_node_id}-output-${output.Id}`,
+        availability: {
+          topic: `${config.mqtt_alarm_topic}/alarm/status`,
+        },
+        payload_on: '1',
+        payload_off: '0',
+        state_on: '1',
+        state_off: '0',
+        device: getDeviceInfo(),
+        qos: 1,
+        state_topic: `${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`,
+      };
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/${output.Id}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published output to HA on output ${output.Id}`);
@@ -493,6 +517,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
 
     for (const output of activeOutputs(panel.outputs)) {
+      publishOutputStateChange(output);
+    }
+
+    for (const output of activePrivateOutputs(panel.outputs)) {
       publishOutputStateChange(output);
     }
 
