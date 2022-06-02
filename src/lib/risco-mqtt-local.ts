@@ -277,7 +277,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(output: Output) {
-    if (output.Status === 'Deactivated') {
+    if (output.Id.Status === 'Deactivated') {
       return '0';
     } else {
       return '1';
@@ -380,8 +380,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const output of activeOutputs(panel.outputs)) {
       const payload = {
         name: output.Label,
-        object_id: `${config.risco_node_id}-output-${output.Id}`,
-        unique_id: `${config.risco_node_id}-${output.Id}`,
+        unique_id: `${config.risco_node_id}-output-${output.Id}`,
         availability: {
           topic: `${config.mqtt_alarm_topic}/alarm/status`,
         },
