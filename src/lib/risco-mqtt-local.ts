@@ -406,7 +406,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     for (const privateoutput of activePrivateOutputs(panel.outputs)) {
       const payload = {
-        name: output.Label,
+        name: privateoutput.Label,
         unique_id: `${config.risco_node_id}-output-${privateoutput.Id}`,
         availability: {
           topic: `${config.mqtt_alarm_topic}/alarm/status`,
