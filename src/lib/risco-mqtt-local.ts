@@ -35,6 +35,14 @@ export interface RiscoMQTTConfig {
   zones?: {
     default?: ZoneConfig
     [label: string]: ZoneConfig
+  },
+  user_outputs?: {
+    default?: OutputUserConfig
+    [label: string]: OurputUserConfig
+  }
+  private_outputs?: {
+    default?: OutputPrivateConfig
+    [label: string]: OutputPrivateConfig
   }
   panel: PanelOptions,
   mqtt?: MQTTConfig
@@ -46,6 +54,18 @@ export interface MQTTConfig extends IClientOptions {
 
 export interface ZoneConfig {
   off_delay?: number,
+  device_class?: string,
+  name?: string
+  name_prefix?: string
+}
+
+export interface OutputUserConfig {
+  device_class?: string,
+  name?: string
+  name_prefix?: string
+}
+
+export interface OutputPrivateConfig {
   device_class?: string,
   name?: string
   name_prefix?: string
@@ -63,6 +83,18 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     default: {
       off_delay: 0,
       device_class: 'motion',
+      name_prefix: '',
+    },
+  },
+  user_outputs: {
+    default: {
+      device_class: 'switch',
+      name_prefix: '',
+    },
+  },
+  private_ouptuts: {
+    default: {
+      device_class: 'None',
       name_prefix: '',
     },
   },
@@ -276,13 +308,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function outputState(output: Output) {
-    if (output.Status === "Deactivated") {
-      return '0';
-    } else {
-      return '1';
-    }
-  }
+  //function outputState(output: Output) {
+  //  if (output.Status === "Deactivated") {
+  //    return '0';
+  //  } else {
+  //    return '1';
+  //  }
+  //}
 
   function publishPartitionStateChanged(partition: Partition) {
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
@@ -382,6 +414,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
 
     for (const output of activeOutputs(panel.outputs)) {
+
+      const useroutputConf = cloneDeep(config.user_outputs.default);
+      merge(useroutputConf, config.user_outputs?.[output.Label]);
+
       const payload = {
         name: output.Label,
         unique_id: `${config.risco_node_id}-output-${output.Id}`,
@@ -398,6 +434,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         state_topic: `${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`,
         command_topic: `${config.mqtt_alarm_topic}/alarm/output/${output.Id}/trigger`,
       };
+
+      const useroutputName = useroutputConf.name || output.Label;
+      payload.name = useroutputConf.name_prefix + useroutputName;
+
+      let useroutputIdSegment: string;
+      if (config.ha_discovery_include_nodeId) {
+        useroutputIdSegment = `${output.Label.replace(/ /g, '-')}/${useroutput.Id}`;
+      } else {
+        useroutputIdSegment = `${useroutput.Id}`;
+      }
+
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${output.Id}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
@@ -405,6 +452,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
     for (const privateoutput of activePrivateOutputs(panel.outputs)) {
+
+      const privateoutputConf = cloneDeep(config.private_outputs.default);
+      merge(privateoutputConf, config.private_outputs?.[privateoutput.Label]);
+
       const payload = {
         name: privateoutput.Label,
         unique_id: `${config.risco_node_id}-privateoutput-${privateoutput.Id}`,
@@ -419,6 +470,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         qos: 1,
         state_topic: `${config.mqtt_alarm_topic}/alarm/output/${privateoutput.Id}/status`,
       };
+
+      const outputName = privateoutputConf.name || privateoutput.Label;
+      payload.name = privateoutputConf.name_prefix + outputName;
+
+      let privateoutputIdSegment: string;
+      if (config.ha_discovery_include_nodeId) {
+        privateoutputIdSegment = `${privateoutput.Label.replace(/ /g, '-')}/${privateoutput.Id}`;
+      } else {
+        privateoutputIdSegment = `${privateoutput.Id}`;
+      }
+      
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/${privateoutput.Id}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
