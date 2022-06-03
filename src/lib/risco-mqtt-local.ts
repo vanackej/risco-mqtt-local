@@ -38,7 +38,7 @@ export interface RiscoMQTTConfig {
   },
   user_outputs?: {
     default?: OutputUserConfig
-    [label: string]: OurputUserConfig
+    [label: string]: OutputUserConfig
   }
   private_outputs?: {
     default?: OutputPrivateConfig
@@ -92,7 +92,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
       name_prefix: '',
     },
   },
-  private_ouptuts: {
+  private_outputs: {
     default: {
       device_class: 'None',
       name_prefix: '',
@@ -440,12 +440,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       let useroutputIdSegment: string;
       if (config.ha_discovery_include_nodeId) {
-        useroutputIdSegment = `${output.Label.replace(/ /g, '-')}/${useroutput.Id}`;
+        useroutputIdSegment = `${output.Label.replace(/ /g, '-')}/${output.Id}`;
       } else {
-        useroutputIdSegment = `${useroutput.Id}`;
+        useroutputIdSegment = `${output.Id}`;
       }
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${output.Id}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${useroutputIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published switch to HA on output ${output.Id}`);
@@ -481,7 +481,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         privateoutputIdSegment = `${privateoutput.Id}`;
       }
       
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/${privateoutput.Id}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/${privateoutputIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA on output ${privateoutput.Id}`);
