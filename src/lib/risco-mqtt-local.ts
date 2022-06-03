@@ -364,7 +364,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return outputs.values.filter (o => o.UserUsable !== false);
   }
   function activePrivateOutputs(privateoutputs: OutputList): Output[] {
-    return privateoutputs.values.filter (o => o.UserUsable === false && o.Label !=='');
+    return privateoutputs.values.filter (o => o.UserUsable === false && o.Label !=='' && (o.Type === 1 || 3));
   }
 
   function publishOnline() {
@@ -481,7 +481,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         privateoutputIdSegment = `${privateoutput.Id}`;
       }
       
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/${privateoutputIdSegment}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${privateoutputIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA on output ${privateoutput.Id}`);
