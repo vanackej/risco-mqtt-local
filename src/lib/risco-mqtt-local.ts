@@ -339,7 +339,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
-  function publishOutputStateChange(output: Output) {
+  function publishOutputStateChange(output: OutputList): Output[] {
     let outputStatus = output.Status;
     switch (outputStatus) {
       case 'Activated':
@@ -352,7 +352,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published output status ${output.Status} on output ${output.Label}`);
   }
-  function publishPrivateOutputStateChange(privateoutput: Output) {
+  function publishPrivateOutputStateChange(privateoutput: OutputList): Output[] {
     let outputStatus = privateoutput.Status;
     switch (outputStatus) {
       case 'Activated':
