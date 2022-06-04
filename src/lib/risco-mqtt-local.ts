@@ -340,11 +340,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
   function publishOutputStateChange(output: Output) {
-    let outputStatus = output.Status ? '1' : '0';
-    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
+    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, output.Status ? '1' : '0', {
       qos: 1, retain: false,
     });
-    logger.verbose(`[Panel => MQTT] Published output status ${outputStatus} on output ${output.Label}`);
+    logger.verbose(`[Panel => MQTT] Published output status ${output.Status} on output ${output.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
@@ -465,8 +464,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         },
         payload_on: '1',
         payload_off: '0',
-        state_on: '1',
-        state_off: '0',
         device_class: privateoutputConf.device_class,
         device: getDeviceInfo(),
         qos: 1,
