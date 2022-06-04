@@ -577,13 +577,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishZoneStateChange(zone, true);
       publishZoneBypassStateChange(zone);
     }
-
+    logger.info(`Publishing initial output states to Home assistant`);
     for (const output of activeOutputs(panel.outputs)) {
       publishOutputStateChange(output);
     }
-
-    for (const output of activePrivateOutputs(panel.outputs)) {
-      publishOutputStateChange(output);
+    for (const privateoutput of activePrivateOutputs(panel.outputs)) {
+      publishOutputStateChange(privateoutput);
     }
 
     if (!listenerInstalled) {
