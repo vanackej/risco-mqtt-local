@@ -481,7 +481,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         privateoutputIdSegment = `${privateoutput.Id}`;
       }
       
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${privateoutputIdSegment}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${privateoutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA on output ${privateoutput.Id}`);
