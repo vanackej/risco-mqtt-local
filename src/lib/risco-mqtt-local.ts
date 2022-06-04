@@ -360,10 +360,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       case 'Deactivated':
         outputStatus = '0';
     }
-    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus ? '1' : '0', {
+    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${privateoutput.Id}/status`, outputStatus ? '1' : '0', {
       qos: 1, retain: false,
     });
-    logger.verbose(`[Panel => MQTT] Published output status ${output.Status} on output ${output.Label}`);
+    logger.verbose(`[Panel => MQTT] Published output status ${privateoutput.Status} on output ${privateoutput.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
