@@ -349,7 +349,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published output status ${EventStr} on output ${output.Label}`);
     if (EventStr === 'Pulsed') {
-      setTimeout(resetPulsedOutput(), 500, outputId);
+      setTimeout(resetPulsedOutput, 500, outputId);
     }
   }
   function resetPulsedOutput(outputId: number) {
