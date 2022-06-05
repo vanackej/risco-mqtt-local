@@ -343,12 +343,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
   function publishOutputStateChange(output: Output, EventStr: string) {
     const outputStatus = outputState(EventStr)
+    const outputId = output.Id
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published output status ${EventStr} on output ${output.Label}`);
     if (EventStr === 'Pulsed') {
-      setTimeout(resetPulsedOutput(), 500, output.Id);
+      setTimeout(resetPulsedOutput(), 500, outputId);
     }
   }
   function resetPulsedOutput(outputId: number) {
