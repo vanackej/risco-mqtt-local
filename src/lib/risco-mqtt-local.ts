@@ -309,12 +309,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(EventStr: string) {
-    let convertedoutput = panel.outputs.byId(Id).Status
-    if (convertedoutput === 'Activated') {
+    if (EventStr === 'Activated') {
       return '1';
-    } else if (convertedoutput === 'Pulsed') {
+    } else if (EventStr === 'Pulsed') {
       return '1';
-    } else if (convertedoutput === 'a') {
+    } else if (EventStr === 'a') {
       return '1';
     } else {
       return '0';
