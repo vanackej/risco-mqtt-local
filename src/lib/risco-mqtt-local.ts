@@ -339,18 +339,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
-  function publishOutputStateChange(output: OutputList) {
-    let outputStatus = output.OStatusChanged.EventStr;
+  function publishOutputStateChange(output: Output) {
+    let outputStatus = output.Status;
     switch (outputStatus) {
       case ('Activated' || 'Pulsed'):
         outputStatus = '1';
       case ('Deactivated'  || null):
         outputStatus = '0';
     }
-    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.OStatusChanged.Id}/status`, outputStatus, {
+    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
       qos: 1, retain: false,
     });
-    logger.verbose(`[Panel => MQTT] Published output status ${outputStatus} on output ${output.OStatusChanged.Id}`);
+    logger.verbose(`[Panel => MQTT] Published output status ${outputStatus} on output ${output.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
@@ -586,6 +586,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`Publishing initial output states to Home assistant`);
     for (const output of activeOutputs(panel.outputs)) {
       publishOutputStateChange(output);
+    }
+    for (const privateoutput of activePrivateOutputs(panel.outputs)) {
+      publishPrivateOutputStateChange(privateoutput);
     }
 
     if (!listenerInstalled) {
