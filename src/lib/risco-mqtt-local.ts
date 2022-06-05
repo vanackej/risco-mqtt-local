@@ -356,6 +356,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${outputId}/status`, '0', {
       qos: 1, retain: false,
     });
+    logger.verbose(`[Panel => MQTT] Reset output status on output ${outputId}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
