@@ -309,7 +309,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(output: Output) {
-    if (output.State === 'Deactivated') {
+    if (output.Status === 'Deactivated') {
       return '0';
     } else {
       return '1';
@@ -588,9 +588,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const output of activeOutputs(panel.outputs)) {
       publishOutputStateChange(output);
     }
-    for (const privateoutput of activePrivateOutputs(panel.outputs)) {
-      publishPrivateOutputStateChange(privateoutput);
-    }
+//    for (const privateoutput of activePrivateOutputs(panel.outputs)) {
+//      publishPrivateOutputStateChange(privateoutput);
+//    }
 
     if (!listenerInstalled) {
       logger.info(`Subscribing to Home assistant commands topics`);
