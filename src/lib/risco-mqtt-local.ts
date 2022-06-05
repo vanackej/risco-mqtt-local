@@ -313,6 +313,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       return '1';
     } else if (output.Status === 'Pulsed') {
       return '1';
+    } else if (output.Status === 'a') {
+      return '1';
     } else {
       return '0';
     }
