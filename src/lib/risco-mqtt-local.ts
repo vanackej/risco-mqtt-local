@@ -585,10 +585,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     logger.info(`Publishing initial output states to Home assistant`);
     for (const output of activeOutputs(panel.outputs)) {
-      publishOutputStateChange(output);
+      publishOutputStateChange(output, '0');
     }
     for (const privateoutput of activePrivateOutputs(panel.outputs)) {
-      publishOutputStateChange(privateoutput);
+      publishOutputStateChange(privateoutput, '0');
     }
 
     if (!listenerInstalled) {
