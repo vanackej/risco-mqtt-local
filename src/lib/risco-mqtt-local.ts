@@ -344,7 +344,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     switch (outputStatus) {
       case ('Activated' || 'Pulsed'):
         outputStatus = '1';
-      case ('Deactivated'  || null):
+      case ('Deactivated'  || null || undefined):
         outputStatus = '0';
     }
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
