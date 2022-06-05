@@ -342,7 +342,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
   function publishOutputStateChange(output: Output) {
-    const outputStatus = outputstate(output)
+    const outputStatus = outputState(output)
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
       qos: 1, retain: false,
     });
