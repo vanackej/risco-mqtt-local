@@ -351,11 +351,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       setTimeout(resetPulsedOutput(), 500, output.Id);
     }
   }
-
-  function resetPulsedOutput(outputId) {
+  function resetPulsedOutput(outputId: number) {
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${outputId}/status`, '0', {
       qos: 1, retain: false,
-    })
+    });
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
