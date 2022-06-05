@@ -308,13 +308,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function outputState(output: Output) {
-    if (output.Status === 'Deactivated') {
-      return '0';
-    } else {
-      return '1';
-    }
-  }
+//  function outputState(output: Output) {
+//    if (output.Status === 'Deactivated') {
+//      return '0';
+//    } else {
+//      return '1';
+//    }
+//  }
 
   function publishPartitionStateChanged(partition: Partition) {
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
@@ -340,8 +340,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
   function publishOutputStateChange(output: Output) {
-    let outputStatus = outputState(output);
-    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
+    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, output.Status, {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published output status ${output.Status} on output ${output.Label}`);
@@ -368,10 +367,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function activeOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter (o => o.UserUsable !== false);
+    return outputs.values.filter(o => o.UserUsable !== false);
   }
   function activePrivateOutputs(privateoutputs: OutputList): Output[] {
-    return privateoutputs.values.filter (o => o.UserUsable === false && o.Label !=='' && (o.Type === 1 || o.Type === 3));
+    return privateoutputs.values.filter(o => o.UserUsable === false && o.Label !=='' && (o.Type === 1 || o.Type === 3));
   }
 
   function publishOnline() {
