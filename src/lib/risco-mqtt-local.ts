@@ -309,7 +309,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(output: Output) {
-    let convertedoutput = panel.outputs.Id.Status
+    let convertedoutput = panel.outputs.byId(Id).Status
     if (convertedoutput === 'Activated') {
       return '1';
     } else if (convertedoutput === 'Pulsed') {
@@ -346,7 +346,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
   function publishOutputStateChange(output: Output) {
 //    const outputStatus = outputState(output)
-    const outputStatus = outputState(panel.outputs.Id.Status)
+    const outputStatus = outputState(panel.outputs.byId(Id).Status)
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
       qos: 1, retain: false,
     });
