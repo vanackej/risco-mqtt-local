@@ -346,13 +346,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published output status ${output.Status} on output ${output.Label}`);
   }
-  function publishPrivateOutputStateChange(privateoutput: Output) {
-    let outputStatus = privateoutput.Status ? '1' : '0';
-    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${privateoutput.Id}/status`, outputStatus, {
-      qos: 1, retain: false,
-    });
-    logger.verbose(`[Panel => MQTT] Published output status ${privateoutput.Status} on output ${privateoutput.Label}`);
-  }
+//  function publishPrivateOutputStateChange(privateoutput: Output) {
+//    let outputStatus = privateoutput.Status ? '1' : '0';
+//    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${privateoutput.Id}/status`, outputStatus, {
+//      qos: 1, retain: false,
+//    });
+//    logger.verbose(`[Panel => MQTT] Published output status ${privateoutput.Status} on output ${privateoutput.Label}`);
+//  }
 
   function publishZoneBypassStateChange(zone: Zone) {
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}-bypass/status`, zone.Bypass ? '1' : '0', {
@@ -628,7 +628,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.outputs.on('OStatusChanged', (Id, EventStr) => {
         if (['Pulsed', 'Activated', 'Deactivated'].includes(EventStr)) {
           publishOutputStateChange(panel.outputs.byId(Id));
-          publishPrivateOutputStateChange(panel.outputs.byId(Id));
+//          publishPrivateOutputStateChange(panel.outputs.byId(Id));
         }
       });
       logger.info(`Subscribing to Home Assistant online status`);
