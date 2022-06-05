@@ -313,8 +313,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       return '1';
     } else if (EventStr === 'Pulsed') {
       return '1';
-    } else if (EventStr === 'a') {
-      return '1';
     } else {
       return '0';
     }
@@ -344,12 +342,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
   function publishOutputStateChange(output: Output, EventStr: string) {
-//    const outputStatus = outputState(output)
     const outputStatus = outputState(EventStr)
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published output status ${EventStr} on output ${output.Label}`);
+    if EventStr === 'Pulsed' {
+      setTimeout(mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, '0', {
+        qos: 1, retain: false,
+      }) 500)
+    }
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
@@ -494,7 +496,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
 
     for (const zone of activeZones(panel.zones)) {
-      // const partitionId = zone.Parts[0];
 
       const zoneConf = cloneDeep(config.zones.default);
       merge(zoneConf, config.zones?.[zone.Label]);
