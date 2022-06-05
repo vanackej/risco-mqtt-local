@@ -587,8 +587,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const output of activeOutputs(panel.outputs)) {
       publishOutputStateChange(output);
     }
-    for (const privateoutput of activeprivateOutputs(panel.outputs)) {
-      publishOutputStateChange(output);
+    for (const privateoutput of activePrivateOutputs(panel.outputs)) {
+      publishOutputStateChange(privateoutput);
     }
 
     if (!listenerInstalled) {
