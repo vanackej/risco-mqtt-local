@@ -308,13 +308,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  //function outputState(output: Output) {
-  //  if (output.Status === "Deactivated") {
-  //    return '0';
-  //  } else {
-  //    return '1';
-  //  }
-  //}
+//  function outputState(output: Output) {
+//    if (output.Deactivated) {
+//      return '0';
+//    } else {
+//      return '1';
+//    }
+//  }
 
   function publishPartitionStateChanged(partition: Partition) {
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
@@ -339,27 +339,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
-  function publishOutputStateChange(output: OutputList): Output[] {
-    let outputStatus = output.Status;
-    switch (outputStatus) {
-      case 'Activated':
-        outputStatus = '1';
-      case 'Deactivated':
-        outputStatus = '0';
-    }
-    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus ? '1' : '0', {
+  function publishOutputStateChange(output: Output) {
+    let outputStatus = output.Deactivated ? '0' : '1';
+    mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${output.Id}/status`, outputStatus, {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published output status ${output.Status} on output ${output.Label}`);
   }
-  function publishPrivateOutputStateChange(privateoutput: OutputList): Output[] {
-    let outputStatus = privateoutput.Status;
-    switch (outputStatus) {
-      case 'Activated':
-        outputStatus = '1';
-      case 'Deactivated':
-        outputStatus = '0';
-    }
+  function publishPrivateOutputStateChange(privateoutput: Output) {
+    let outputStatus = privateoutput.Deactivated ? '0' : '1':
     mqttClient.publish(`${config.mqtt_alarm_topic}/alarm/output/${privateoutput.Id}/status`, outputStatus ? '1' : '0', {
       qos: 1, retain: false,
     });
