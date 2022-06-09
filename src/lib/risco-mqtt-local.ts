@@ -94,7 +94,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   },
   private_outputs: {
     default: {
-      device_class: 'None',
+      device_class: '',
       name_prefix: '',
     },
   },
