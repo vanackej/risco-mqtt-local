@@ -333,6 +333,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         tech: zone.tech,
         techLabel: zone.techLabel,
         tamper: zone.Tamper,
+        low_battery: zone.LowBattery,
+        bypass: zone.Bypass,
       }), { qos: 1, retain: true });
     }
     let zoneStatus = zone.Open ? '1' : '0';
@@ -626,6 +628,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
         if (['Bypassed', 'UnBypassed'].includes(EventStr)) {
           publishZoneBypassStateChange(panel.zones.byId(Id));
+          publishZoneStateChange(panel.zones.byId(Id), true);
+        }
+        if (['LowBattery', 'BatteryOK'].includes(EventStr)) {
+          publishZoneStateChange(panel.zones.byId(Id), true);
         }
       });
       logger.info(`Subscribing to panel outputs events`);
