@@ -28,7 +28,7 @@ Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communi
 - RISCO multipartitions.
 - Bypass zones in Home Assistant (additional switch created for each zone)
 - Multiple systems now supported with configurable alarm topic.
-- Outputs now supported.  Non-user-usable outputs represented as binary sensors.  User-usable outputs represented as switches.  Note that pulsed swtiches will immediately revert to off.
+- Outputs now supported.  Non-user-usable outputs represented as binary sensors (private outputs in configuration).  User-usable outputs represented as switches.  Note that pulsed switches will immediately revert to off.
 
 ## Installation
 
