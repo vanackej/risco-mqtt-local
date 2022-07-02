@@ -413,8 +413,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function publishHomeAssistantDiscoveryInfo() {
     for (const partition of activePartitions(panel.partitions)) {
 
-      const partitionsConf = cloneDeep(config.partitions.default);
-      merge(partitionsConf, config.partitions?.[partitions.Label]);
+      const partitionConf = cloneDeep(config.partitions.default);
+      merge(partitionConf, config.partitions?.[partition.Label]);
 
       const payload = {
         name: partition.Label,
@@ -427,7 +427,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         device: getDeviceInfo(),
         command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partition.Id}/config`, JSON.stringify(payload), {
+
+      const partitionName = partitionConf.name || partition.Label;
+      payload.name = partitionConf.name_prefix + partitionName;
+
+      let partitionIdSegment: string;
+      if (config.ha_discovery_include_nodeId) {
+        partitionIdSegment = `${partition.Label.replace(/ /g, '-')}/${partition.Id}`;
+      } else {
+        partitionIdSegment = `${partition.Id}`;
+      }
+
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partitionIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA on partition ${partition.Id}`);

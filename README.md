@@ -70,6 +70,17 @@ Create a file config.json in your project directory.
       "name_prefix": "" // Force zone name prefix to empty for this zone
     },
   }
+  "partitions": {
+    "default": {
+      "name_prefix": ""
+    },
+    "1": {
+      "name": "House"
+    },
+    "2": {
+      "name": "Garage"
+    }
+  },
   "user_outputs": {
     "default": {
       "name_prefix": ""
