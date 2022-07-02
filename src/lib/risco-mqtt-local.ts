@@ -19,7 +19,7 @@ import { cloneDeep } from 'lodash';
 const { createLogger, format, transports } = pkg;
 const { combine, timestamp, printf, colorize } = format;
 
-const ALARM_TOPIC_REGEX = /^\w+\/alarm\/partitiion\/([0-9]+)\/set$/m;
+const ALARM_TOPIC_REGEX = /^\w+\/alarm\/partition\/([0-9]+)\/set$/m;
 const ZONE_BYPASS_TOPIC_REGEX = /^\w+\/alarm\/zone\/([0-9]+)-bypass\/set$/m;
 const OUTPUT_TOPIC_REGEX = /^\w+\/alarm\/output\/([0-9]+)\/trigger$/m;
 
