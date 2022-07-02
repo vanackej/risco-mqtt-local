@@ -31,6 +31,10 @@ export interface RiscoMQTTConfig {
   ha_discovery_prefix_topic?: string,
   ha_discovery_include_nodeId?: boolean,
   risco_node_id?: string,
+  partitions?: {
+    default?: PartitionConfig
+    [label: string]: PartitionConfig
+  },
   zones?: {
     default?: ZoneConfig
     [label: string]: ZoneConfig
@@ -49,6 +53,11 @@ export interface RiscoMQTTConfig {
 
 export interface MQTTConfig extends IClientOptions {
   url: string
+}
+
+export interface PartitionConfig {
+  name?: string
+  name_prefix?: string
 }
 
 export interface ZoneConfig {
@@ -77,6 +86,11 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   ha_discovery_include_nodeId: false,
   risco_node_id: 'risco-alarm-panel',
   panel: {},
+  partitions: {
+    default: {
+      name_prefix: 'risco alarm panel',
+    },
+  },
   zones: {
     default: {
       off_delay: 0,
@@ -398,16 +412,20 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishHomeAssistantDiscoveryInfo() {
     for (const partition of activePartitions(panel.partitions)) {
+
+      const partitionsConf = cloneDeep(config.partitions.default);
+      merge(partitionsConf, config.partitions?.[partitions.Label]);
+
       const payload = {
         name: partition.Label,
         object_id: `${config.risco_node_id}-${partition.Id}`,
-        state_topic: `${config.risco_node_id}/alarm/${partition.Id}/status`,
-        unique_id: `${config.risco_node_id}-${partition.Id}`,
+        state_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/status`,
+        unique_id: `${config.risco_node_id}-partition-${partition.Id}`,
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
         device: getDeviceInfo(),
-        command_topic: `${config.risco_node_id}/alarm/${partition.Id}/set`,
+        command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partition.Id}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
@@ -590,7 +608,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!listenerInstalled) {
       logger.info(`Subscribing to Home assistant commands topics`);
       for (const partition of activePartitions(panel.partitions)) {
-        const partitionCommandsTopic = `${config.risco_node_id}/alarm/${partition.Id}/set`;
+        const partitionCommandsTopic = `${config.risco_node_id}/alarm/partition/${partition.Id}/set`;
         logger.info(`Subscribing to ${partitionCommandsTopic} topic`);
         mqttClient.subscribe(partitionCommandsTopic);
       }
