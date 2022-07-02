@@ -168,6 +168,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let panelReady = false;
   let mqttReady = false;
   let listenerInstalled = false;
+  let haOnline = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
@@ -286,8 +287,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else if (topic == `${config.ha_discovery_prefix_topic}/status`) {
       if (message.toString() === 'online') {
         logger.info('Home Assistant is back online');
-        panelOrMqttConnected();
+          if (!haOnline) {
+          haOnline = true;
+          panelOrMqttConnected();
+          }
       } else {
+        haOnline = false
         logger.info('Home Assistant has gone offline');
       }
     }
@@ -595,9 +600,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       return;
     }
     logger.info(`Panel and MQTT communications are ready`);
-    logger.info(`Publishing Home Assistant discovery info`);
-    publishHomeAssistantDiscoveryInfo();
     publishOnline();
+    if (haOnline) {
+      logger.info(`Publishing Home Assistant discovery info`);
+      publishHomeAssistantDiscoveryInfo();
+    } else {
+      logger.info(`Home Assistant is offline)`)
+    }
 
     logger.info(`Publishing initial partitions and zones state to Home assistant`);
     for (const partition of activePartitions(panel.partitions)) {
