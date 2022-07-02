@@ -48,7 +48,8 @@ Create a file config.json in your project directory.
     "panelPort": 1000,
     "panelPassword": "1234",
     "panelId": 1,
-    "watchDogInterval": 10000
+    "watchDogInterval": 10000,
+    "commandsLog": false // If enabled, dump all commands in a file named risco-commands-${date}.csv
   },
   "ha_discovery_prefix_topic": "homeassistant" //Optional
   "risco_node_id": "risco-alarm-panel" //Optional - topic to which state changes are published for multiple instances
@@ -147,6 +148,12 @@ To start risco-mqtt-local you can simply type:
 ### Using Docker image
 
 `docker run -v $(pwd)/config.json:/data/config.json vanackej/risco-mqtt-local`
+
+## Support
+
+### Bug reports
+
+Please use the bug issue template and fill all requested informations, including debug logs and commands logs.
 
 ## Credits
 

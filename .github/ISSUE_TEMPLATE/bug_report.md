@@ -19,12 +19,19 @@ A clear and concise description of what the bug is.
  - Risco Panel firmware version: 
 
 **Logs**
+
 ```
-Copy/paste the application logs here :
+Copy/paste the application logs here (or add them as attachement) :
 - With debug log level enabled
 - Including startup logs
 - You are responsible of removing any sensitive information, like MQTT and panel credentials
 ```
+
+```
+Copy/paste the commands csv logs here (or add them as attachemnts) :
+See commandsLog option in documentation
+```
+
 
 **Additional context**
 Add any other context about the problem here.
