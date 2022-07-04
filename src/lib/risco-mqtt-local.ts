@@ -64,7 +64,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   mqtt: {
     url: null,
     reconnectPeriod: 5000,
-    clientId: 'risco-mqtt-' + Math.random().toString(16).substring(2, 8),
+    clientId: null,
     will: {
       topic: `${ALARM_TOPIC}/status`, payload: 'offline', qos: 1, retain: true, properties: {
         willDelayInterval: 30,
@@ -93,6 +93,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }),
       format,
     );
+  }
+  config.panel_name = config.panel_name.trim();
+  if (!config.panel_node_id) {
+    config.panel_node_id = config.panel_name.replace(/\s+/g, "_").toLowerCase();
   }
 
   const logger = createLogger({
@@ -162,6 +166,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.error(`MQTT connection error: ${error}`);
     mqttReady = false;
   });
+
+  const ALARM_TOPIC_REGEX = new RegExp(`^riscopanel/${config.panel_node_id}/partition/([0-9]+)/set$`);
+  const ZONE_BYPASS_TOPIC_REGEX = new RegExp(`^riscopanel/${config.panel_node_id}/zone/([0-9]+)-bypass/set$`);
 
   mqttClient.on('message', (topic, message) => {
     let m;
@@ -242,6 +249,22 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`);
   }
 
+  function getStatusTopic() {
+    return `riscopanel/${config.panel_node_id}/status`;
+  }
+
+  function getPartitionTopic(partitionId: number) {
+    return `riscopanel/${config.panel_node_id}/partition/${partitionId}`;
+  }
+
+  function getZoneTopic(zoneId: number) {
+    return `riscopanel/${config.panel_node_id}/zone/${zoneId}`;
+  }
+
+  function getZoneBypassTopic(zoneId: number) {
+    return `riscopanel/${config.panel_node_id}/zone/${zoneId}-bypass`;
+  }
+
   function publishZoneStateChange(zone: Zone, publishAttributes: boolean) {
     if (publishAttributes) {
       mqttClient.publish(`${ALARM_TOPIC}/zone/${zone.Id}`, JSON.stringify({
@@ -296,7 +319,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return {
       manufacturer: 'Risco',
       model: `${panel.riscoComm.panelInfo.PanelModel}/${panel.riscoComm.panelInfo.PanelType}`,
-      name: panel.riscoComm.panelInfo.PanelModel,
+      name: config.panel_name,
       sw_version: panel.riscoComm.panelInfo.PanelFW,
       identifiers: `risco-alarm-panel`,
     };
@@ -304,7 +327,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishHomeAssistantDiscoveryInfo() {
     for (const partition of activePartitions(panel.partitions)) {
-      const payload = {
+      const partitionPayload = {
         name: partition.Label,
         object_id: `risco-alarm-panel-${partition.Id}`,
         state_topic: `${ALARM_TOPIC}/${partition.Id}/status`,
@@ -319,7 +342,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA on partition ${partition.Id}`);
-      logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(partitionPayload, null, 2)}`);
     }
 
     for (const zone of activeZones(panel.zones)) {
@@ -328,7 +351,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const zoneConf = cloneDeep(config.zones.default);
       merge(zoneConf, config.zones?.[zone.Label]);
 
-      const payload: any = {
+      const zonePayload: any = {
         availability: {
           topic: `${ALARM_TOPIC}/status`,
         },
@@ -359,31 +382,24 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       };
 
       if (zoneConf.off_delay) {
-        payload.off_delay = zoneConf.off_delay; // If the service is stopped with any activated zone, it can remain forever on without this config
+        zonePayload.off_delay = zoneConf.off_delay; // If the service is stopped with any activated zone, it can remain forever on without this config
       }
 
       const zoneName = zoneConf.name || zone.Label;
-      payload.name = zoneConf.name_prefix + zoneName;
+      zonePayload.name = zoneConf.name_prefix + zoneName;
       bypassZonePayload.name = zoneConf.name_prefix + zoneName + ' Bypass';
 
-      let nodeIdSegment: string;
-      if (config.ha_discovery_include_nodeId) {
-        nodeIdSegment = `${zone.Label.replace(/ /g, '-')}/${zone.Id}`;
-      } else {
-        nodeIdSegment = `${zone.Id}`;
-      }
-
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.panel_node_id}/${zonePayload.unique_id}/config`, JSON.stringify(zonePayload), {
         qos: 1,
         retain: true,
       });
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${nodeIdSegment}-bypass/config`, JSON.stringify(bypassZonePayload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.panel_node_id}/${bypassZonePayload.unique_id}/config`, JSON.stringify(bypassZonePayload), {
         qos: 1,
         retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`);
+      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${zonePayload.name}`);
       logger.info(`[Panel => MQTT][Discovery] Published switch to HA: Zone label = ${zone.Label}, HA name = ${bypassZonePayload.name}`);
-      logger.verbose(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(zonePayload, null, 2)}`);
       logger.verbose(`[Panel => MQTT][Discovery] Bypass switch discovery payload\n${JSON.stringify(bypassZonePayload, null, 2)}`);
     }
   }

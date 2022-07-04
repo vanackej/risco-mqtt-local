@@ -75,11 +75,18 @@ The panel full configuration options are described here : https://github.com/van
 
 NB Ensure that zone description matches label stored in panel exactly (including case) to ensure that config is correctly represented.
 
+### Multiple panels support
+
+To integrate multiple panels to a single HA instance, you must start one process/docker container instance for each panel.
+Each panel must have a unique **panel_name** value in its configuration file. 
+`panel_name` is automatically converted to a suitable `panel_node_id`, used in various topics definitions and subscriptions. 
+`panel_name` is also used as HA device name
+
 ## Subscribe Topics
 
 **risco-mqtt-local** subscribes at startup one topic for every partition in your risco alarm panel configuration.
 
-Topics format is `riscopanel/alarm/<partition_id>/set` where **partition_id** is the id of the partition
+Topics format is `riscopanel/${panel_node_id}/<partition_id>/set` where **partition_id** is the id of the partition
 
 Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode.
 
@@ -87,15 +94,15 @@ Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home*
 
 risco-mqtt-local publishes one topic for every partition and for every zones in your risco alarm panel configuration.
 
-Partitions topics format is `riscopanel/alarm/<partition_id>/status` where **partition_id** is the id of the partition
+Partitions topics format is `riscopanel/${panel_node_id}/<partition_id>/status` where **partition_id** is the id of the partition
 
 Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode.
 
-Zones topics format is `riscopanel/alarm/<partition_id>/sensor/<zone_id>/status` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
+Zones topics format is `riscopanel/${panel_node_id}/<partition_id>/sensor/<zone_id>/status` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
 
-Payload could be : **triggered** if zone is curently triggered, and **idle** if zone is currently idle.
+Payload could be : **triggered** if zone is currently triggered, and **idle** if zone is currently idle.
 
-In addition to every zones, risco-mqtt-local publishes a topic for every zone with all the info of the zone in the paylaod in json format. Topics format is `riscopanel/alarm/<partition_id>/sensor/<zone_id>` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
+In addition to every zones, risco-mqtt-local publishes a topic for every zone with all the info of the zone in the payload in json format. Topics format is `riscopanel/${panel_node_id}/<partition_id>/sensor/<zone_id>` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
 
 ## Home Assistant Auto Discovery
 
