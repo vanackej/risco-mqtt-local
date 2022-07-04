@@ -1,4 +1,4 @@
-name: Builder
+name: HA addon Builder
 
 env:
   BUILD_ARGS: "--test"
