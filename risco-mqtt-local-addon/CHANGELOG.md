@@ -2,6 +2,8 @@
 ## To be releases
 - add multiple panels support (#TODO)
 
+## 0.4.3
+- Build multi arch Docker images (#27)
 
 ## 0.4.2
 - Republish state after home assistant restart
