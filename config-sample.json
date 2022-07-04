@@ -1,5 +1,7 @@
 {
   "log": "info",
+  "ha_discovery_prefix_topic": "custom_ha_discovery_topic",
+  "panel_name": "Custom panel name",
   "panel": {
     "panelIp": "192.168.1.150",
     "panelPort": 1000,
