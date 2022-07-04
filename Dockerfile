@@ -7,7 +7,7 @@ WORKDIR /workspace
 
 COPY package.json yarn.lock ./
 
-RUN yarn install
+RUN yarn --frozen-lockfile
 
 COPY . ./
 
