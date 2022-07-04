@@ -26,6 +26,7 @@ Low level communication to the Risco Panel is provided by [Risco Lan library](ht
 - Home Assistant MQTT Auto Discovery.
 - RISCO multipartitions.
 - Bypass zones in Home Assistant (additional switch created for each zone)
+- Multiple systems now supported with configurable alarm topic.
 
 ## Installation
 
@@ -48,7 +49,8 @@ Create a file config.json in your project directory.
     "watchDogInterval": 10000,
     "commandsLog": false // If enabled, dump all commands in a file named risco-commands-${date}.csv
   },
-  "ha_discovery_prefix_topic": "homeassistant" //Optional
+  "ha_discovery_prefix_topic": "homeassistant", //Optional
+  "panel_name": "alarm", // Optional custom panel name
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
     "username": "MQTT_USERNAME",
