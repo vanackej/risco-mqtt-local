@@ -1,4 +1,8 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+## To be releases
+- add multiple panels support (#TODO)
+
+
 ## 0.4.2
 - Republish state after home assistant restart
 
