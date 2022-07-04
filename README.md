@@ -37,8 +37,12 @@ npm install @vanackej/risco-mqtt-local
 ## Configuration
 
 Create a file config.json in your project directory.
+
 **Note:** For Home assistant configuration, the configuration file format is the same but the file must 
 be located in `config` directory and named `risco-mqtt.json`. See [Home assistant specific documentation ](risco-mqtt-local-addon/DOCS.md) 
+
+**REMOVE ANY COMMENT FROM THIS CONFIG SAMPLE BELOW !** JSON format does not support comments. Future version of the library will switch
+to YAML format, which allows for comments.
 
 ```
 {
