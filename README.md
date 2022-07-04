@@ -10,8 +10,7 @@
 
 Provide Risco alarm panels integration to Home Assistant using Local TCP communication with Panel (no cloud access required)
 
-This project is a fork of [risco-mqtt-home-assistant](https://github.com/mancioshell/risco-mqtt-home-assistant) by [Alessandro Mancini](https://github.com/mancioshell), using local APIs instead of RiscoCloud APIs.
-Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communication library](https://github.com/TJForc/risco-lan-bridge)
+Low level communication to the Risco Panel is provided by [Risco Lan library](https://github.com/vanackej/risco-lan-bridge)
 
 ## Requirements
 
@@ -134,4 +133,4 @@ Please use the bug issue template and fill all requested informations, including
 
 ## Credits
 
-Thanks to [TJForc](https://github.com/TJForc) for the local communication library and [Alessandro Mancini](https://github.com/mancioshell) for his initial work
+Thanks to [TJForc](https://github.com/TJForc) for the initial local communication library and [Alessandro Mancini](https://github.com/mancioshell) for his initial work
