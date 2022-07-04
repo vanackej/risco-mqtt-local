@@ -1,6 +1,8 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 ## To be releases
-- add multiple panels support (#TODO)
+
+## 0.5.0-beta.1
+- add multiple panels support (#45)
 
 ## 0.4.3
 - Build multi arch Docker images (#27)
