@@ -7,9 +7,6 @@ image: "ghcr.io/vanackej/risco-mqtt-local-addon-{arch}"
 arch:
   - aarch64
   - amd64
-  - armhf
-  - armv7
-  - i386
 ports:
   33000/tcp: 33000
 ports_description:
