@@ -1,6 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 ## To be releases
 
+## 0.5.0-beta.2
+- add arm v7 arch support (#49)
+
 ## 0.5.0-beta.1
 - add multiple panels support (#45)
 
