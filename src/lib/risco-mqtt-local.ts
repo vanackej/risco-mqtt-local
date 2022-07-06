@@ -287,6 +287,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       case 'DISARM':
         return await panel.disarmPart(partitionId);
       case 'ARM_HOME':
+        return await panel.armHome(partitionId);
       case 'ARM_NIGHT':
         return await panel.armHome(partitionId);
       case 'ARM_AWAY':
