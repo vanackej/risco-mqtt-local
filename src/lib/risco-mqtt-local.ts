@@ -369,7 +369,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     let zoneStatus = zone.Open ? '1' : '0';
     mqttClient.publish(`${getZoneTopic(zone.Id)}/status`, zoneStatus, {
-      qos: 1, retain: false,
+      qos: 1, retain: true,
     });
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
@@ -378,14 +378,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     const outputStatus = outputState(EventStr)
     const outputId = output.Id
     mqttClient.publish(`${getOutputTopic(output.Id)}/alarm/output/${output.Id}/status`, outputStatus, {
-      qos: 1, retain: false,
+      qos: 1, retain: true,
     });
     logger.verbose(`[Panel => MQTT] Published output status ${EventStr} on output ${output.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
     mqttClient.publish(`riscopanel/${config.panel_node_id}/zone/${zone.Id}-bypass/status`, zone.Bypass ? '1' : '0', {
-      qos: 1, retain: false,
+      qos: 1, retain: true,
     });
     logger.verbose(`[Panel => MQTT] Published zone bypass status ${zone.Bypass} on zone ${zone.Label}`);
   }
