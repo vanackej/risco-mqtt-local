@@ -66,6 +66,30 @@ Create a file config.json in your project directory.
       "device_class": "garage_door", // override device class for binary sensor. default to "motion". see HA documentation for available values
       "name": "Garage Door", // Override default name for this zone. Default to zone label
       "name_prefix": "" // Force zone name prefix to empty for this zone
+    },
+  "user_outputs": {
+    "default": {
+      "name_prefix": ""
+    },
+    "Up/over Trigger": { 
+      "device_class": "garage", 
+      "name": "Garage door trigger RISCO", 
+      "name_prefix": "" 
+    }
+  },
+  "private_outputs": {
+    "default": {
+      "name_prefix": ""
+    },
+    "Bell": { 
+      "device_class": "sound", 
+      "name": "Alarm Bell", 
+      "name_prefix": "" 
+    },
+    "Strobe": { 
+      "device_class": "light", 
+      "name": "Alarm Strobe", 
+      "name_prefix": "" 
     }
   }
 }
