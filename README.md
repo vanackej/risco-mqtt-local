@@ -77,7 +77,7 @@ Create a file config.json in your project directory.
       "name_prefix": "" 
     }
   },
-  "private_outputs": {
+  "system_outputs": {
     "default": {
       "name_prefix": ""
     },

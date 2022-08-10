@@ -35,9 +35,9 @@ export interface RiscoMQTTConfig {
     default?: OutputUserConfig
     [label: string]: OutputUserConfig
   },
-  private_outputs?: {
-    default?: OutputPrivateConfig
-    [label: string]: OutputPrivateConfig
+  system_outputs?: {
+    default?: OutputSystemConfig
+    [label: string]: OutputSystemConfig
   }
   panel: PanelOptions,
   mqtt?: MQTTConfig
@@ -59,7 +59,7 @@ export interface OutputUserConfig {
   name_prefix?: string
 }
 
-export interface OutputPrivateConfig {
+export interface OutputSystemConfig {
   device_class?: string,
   name?: string
   name_prefix?: string
@@ -85,7 +85,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
       name_prefix: '',
     },
   },
-  private_outputs: {
+  system_outputs: {
     default: {
       device_class: 'running',
       name_prefix: '',
@@ -401,8 +401,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function activeOutputs(outputs: OutputList): Output[] {
     return outputs.values.filter(o => o.UserUsable !== false);
   }
-  function activePrivateOutputs(privateoutputs: OutputList): Output[] {
-    return privateoutputs.values.filter(o => o.UserUsable === false && o.Label !=='' && (o.Type === 1 || o.Type === 3));
+  function activeSystemOutputs(systemoutputs: OutputList): Output[] {
+    return systemoutputs.values.filter(o => o.UserUsable === false && o.Label !=='' && (o.Type === 1 || o.Type === 3));
   }
 
   function publishOnline() {
@@ -455,59 +455,85 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const useroutputConf = cloneDeep(config.user_outputs.default);
       merge(useroutputConf, config.user_outputs?.[output.Label]);
 
-      const outputPayload = {
-        name: output.Label,
-        unique_id: `${config.panel_node_id}-output-${output.Id}`,
-        availability: {
-          topic: `${config.panel_node_id}/alarm/status`,
-        },
-        payload_on: '1',
-        payload_off: '0',
-        state_on: '1',
-        state_off: '0',
-        device_class: useroutputConf.device_class,
-        icon: 'mdi:toggle-switch-off',
-        device: getDeviceInfo(),
-        qos: 1,
-        state_topic: `${config.panel_node_id}/alarm/output/${output.Id}/status`,
-        command_topic: `${config.panel_node_id}/alarm/output/${output.Id}/trigger`,
-      };
+      if (output.Type === 1 || output.Type === 3) {
 
-      const useroutputName = useroutputConf.name || output.Label;
-      payload.name = useroutputConf.name_prefix + useroutputName;
+        const outputPayload = {
+          name: output.Label,
+          unique_id: `${config.panel_node_id}-output-${output.Id}`,
+          availability: {
+            topic: `${config.panel_node_id}/alarm/status`,
+          },
+          payload_on: '1',
+          payload_off: '0',
+          state_on: '1',
+          state_off: '0',
+          device_class: useroutputConf.device_class,
+          icon: 'mdi:toggle-switch-off',
+          device: getDeviceInfo(),
+          qos: 1,
+          state_topic: `${config.panel_node_id}/alarm/output/${output.Id}/status`,
+          command_topic: `${config.panel_node_id}/alarm/output/${output.Id}/trigger`,
+        };
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.panel_node_id}/${outputPayload.unique_id}-output/config`, JSON.stringify(outputPayload), {
-        qos: 1, retain: true,
-      });
-      logger.info(`[Panel => MQTT][Discovery] Published switch to HA Output label = ${output.Label}, HA name = ${payload.name} on output ${output.Id}`);
-      logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
+        const useroutputName = useroutputConf.name || output.Label;
+        payload.name = useroutputConf.name_prefix + useroutputName;
+
+        mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.panel_node_id}/${outputPayload.unique_id}-output/config`, JSON.stringify(outputPayload), {
+          qos: 1, retain: true,
+        });
+        logger.info(`[Panel => MQTT][Discovery] Published switch to HA Output label = ${output.Label}, HA name = ${payload.name} switch on output ${output.Id}`);
+        logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
+
+      } else if (output.Type === 0 || output.Type === 2) {
+
+        const outputPayload = {
+          name: output.Label,
+          unique_id: `${config.panel_node_id}-output-${output.Id}`,
+          availability: {
+            topic: `${config.panel_node_id}/alarm/status`,
+          },
+          icon: 'mdi:gesture-tap',
+          device: getDeviceInfo(),
+          qos: 1,
+          command_topic: `${config.panel_node_id}/alarm/output/${output.Id}/trigger`,
+        };
+
+        const useroutputName = useroutputConf.name || output.Label;
+        payload.name = useroutputConf.name_prefix + useroutputName;
+
+        mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.panel_node_id}/${outputPayload.unique_id}-output/config`, JSON.stringify(outputPayload), {
+          qos: 1, retain: true,
+        });
+        logger.info(`[Panel => MQTT][Discovery] Published switch to HA Output label = ${output.Label}, HA name = ${payload.name} button on output ${output.Id}`);
+        logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
+      }
     }
-    for (const privateoutput of activePrivateOutputs(panel.outputs)) {
+    for (const systemoutput of activeSystemOutputs(panel.outputs)) {
 
-      const privateoutputConf = cloneDeep(config.private_outputs.default);
-      merge(privateoutputConf, config.private_outputs?.[privateoutput.Label]);
+      const systemoutputConf = cloneDeep(config.system_outputs.default);
+      merge(systemoutputConf, config.system_outputs?.[systemoutput.Label]);
 
-      const privateOutputPayload = {
-        name: privateoutput.Label,
-        unique_id: `${config.panel_node_id}-privateoutput-${privateoutput.Id}`,
+      const systemOutputPayload = {
+        name: systemoutput.Label,
+        unique_id: `${config.panel_node_id}-systemoutput-${systemoutput.Id}`,
         availability: {
           topic: `${config.panel_node_id}/alarm/status`,
         },
         payload_on: '1',
         payload_off: '0',
-        device_class: privateoutputConf.device_class,
+        device_class: systemoutputConf.device_class,
         device: getDeviceInfo(),
         qos: 1,
-        state_topic: `${config.panel_node_id}/alarm/output/${privateoutput.Id}/status`,
+        state_topic: `${config.panel_node_id}/alarm/output/${systemoutput.Id}/status`,
       };
 
-      const outputName = privateoutputConf.name || privateoutput.Label;
-      payload.name = privateoutputConf.name_prefix + outputName;
+      const outputName = systemoutputConf.name || systemoutput.Label;
+      payload.name = systemoutputConf.name_prefix + outputName;
       
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${privateOutputPayload.unique_id}-output/config`, JSON.stringify(privateOutputPayload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${systemOutputPayload.unique_id}-output/config`, JSON.stringify(systemOutputPayload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA Output label = ${privateoutput.Label}, HA name = ${payload.name} on output ${privateoutput.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA Output label = ${systemoutput.Label}, HA name = ${payload.name} on output ${systemoutput.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
